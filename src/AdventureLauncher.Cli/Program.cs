@@ -58,8 +58,8 @@ try
             : CompanyAccess.Open(File.ReadAllText(Required("encrypted")), code, publicKey);
         if (options.TryGetValue("base-manifest", out var basePath))
         {
-            var pack = ManifestSigning.Verify(File.ReadAllText(basePath), publicKey);
-            CompanyAccess.Apply(pack, sources);
+            var basePack = ManifestSigning.Verify(File.ReadAllText(basePath), publicKey);
+            CompanyAccess.Apply(basePack, sources);
         }
         Console.WriteLine(JsonSerializer.Serialize(new { valid = true, artifacts = sources.Artifacts.Count }));
         return 0;

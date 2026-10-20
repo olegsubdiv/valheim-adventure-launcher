@@ -20,6 +20,7 @@ function Invoke-DotNet([string[]]$Arguments) {
 Push-Location $repo
 try {
     $desktop = Join-Path $repo 'src\AdventureLauncher.Desktop\AdventureLauncher.Desktop.csproj'
+    Invoke-DotNet @('build',(Join-Path $repo 'src\AdventureLauncher.Cli'),'--configuration','Release','--nologo')
     if (-not $SkipTests) {
         foreach ($name in @('AdventureLauncher.Core.Tests','AdventureLauncher.Client.Tests')) {
             $testProject = Join-Path $repo ("tests\$name\$name.csproj")
