@@ -1,4 +1,4 @@
-<Window x:Class="AdventureLauncher.Desktop.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Style="{StaticResource {x:Type Window}}" Title="Valheim Adventure RPG" Width="980" Height="800" MinWidth="820" MinHeight="700" WindowStartupLocation="CenterScreen">
+<Window x:Class="AdventureLauncher.Desktop.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Style="{StaticResource {x:Type Window}}" Title="Valheim Adventure RPG" Width="980" Height="860" MinWidth="820" MinHeight="780" WindowStartupLocation="CenterScreen">
   <Grid Margin="30">
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <Grid>
@@ -29,6 +29,9 @@
           <Button Grid.Column="1" Content="Choose drive / folder…" Click="BrowseProfile_Click" Margin="9,0,0,0"/>
         </Grid>
         <TextBlock Text="An existing profile is reused, including its HD textures. For a new installation, choose an empty folder on the drive you want." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0"/>
+        <TextBlock Text="Company access code" Foreground="{StaticResource MutedBrush}" Margin="0,13,0,6"/>
+        <PasswordBox x:Name="CompanyCodeBox" MaxLength="64" Background="#101B27" Foreground="{StaticResource TextBrush}" BorderBrush="#405265" Padding="10,8" ToolTip="Paste the secret code from the maintainer to enable automatic HD and shader downloads."/>
+        <TextBlock Text="Unlocks automatic HD and shader downloads. Saved on this PC. Without a code, original archives can be imported manually." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,6,0,0"/>
         <Expander Header="Download storage" Margin="0,13,0,0">
           <StackPanel Margin="0,9,0,0">
             <Grid>

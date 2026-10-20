@@ -34,8 +34,9 @@ public partial class MainWindow : Window
             ProfilePath = @"F:\ValheimMods\Adventure RPG",
             CachePath = @"F:\ValheimMods\.arpg-cache"
         } : _controller.LoadSettings();
-        // Trust and the release channel always come from the installed application, never user settings or a remote manifest.
+        // Trust and channel URLs come from the installed application; only the company decryption code is user supplied.
         _settings.FeedUrl = _release.FeedUrl;
+        _settings.CompanySourcesUrl = _release.CompanySourcesUrl;
         _settings.PublicKeyPem = _release.PublicKeyPem;
         if (!selfTest)
         {
@@ -47,6 +48,7 @@ public partial class MainWindow : Window
         GamePathBox.Text = _settings.GamePath;
         ProfilePathBox.Text = _settings.ProfilePath;
         CachePathBox.Text = _settings.CachePath;
+        CompanyCodeBox.Password = _settings.CompanyCode;
         AppVersionText.Text = "Launcher " + (Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "development");
         if (!selfTest) Loaded += async (_, _) => await CheckLauncherUpdateAsync();
     }
@@ -56,7 +58,9 @@ public partial class MainWindow : Window
         _settings.GamePath = GamePathBox.Text.Trim();
         _settings.ProfilePath = ProfilePathBox.Text.Trim();
         _settings.CachePath = CachePathBox.Text.Trim();
+        _settings.CompanyCode = CompanyCodeBox.Password.Trim();
         _settings.FeedUrl = _release.FeedUrl;
+        _settings.CompanySourcesUrl = _release.CompanySourcesUrl;
         _settings.PublicKeyPem = _release.PublicKeyPem;
         if (string.IsNullOrWhiteSpace(_settings.ProfilePath)) throw new InvalidOperationException("Choose a modpack storage folder first.");
         if (string.IsNullOrWhiteSpace(_settings.CachePath)) throw new InvalidOperationException("Choose a download storage folder first.");

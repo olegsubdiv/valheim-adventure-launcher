@@ -18,7 +18,7 @@ Outputs:
 - `adventure-configs-<version>.zip`: only the pack's changed text configuration and metadata.
 - `provenance.json`: every managed file's upstream archive/member, source totals, and explicit generated-file exclusions.
 
-The builder verifies each pinned archive's SHA256 and every exported canonical file's size/SHA256. Unmodified files are fetched from their original Thunderstore/Hexium archives. Unknown binary files are an error: they are never silently bundled in the custom ZIP. Willybach and Badger remain manual official archive imports; no copy of them is published by this tool.
+The builder verifies each pinned archive's SHA256 and every exported canonical file's size/SHA256. Unmodified files are fetched from their original Thunderstore/Hexium archives. Unknown binary files are an error: they are never silently bundled in the custom ZIP. The base manifest keeps manual Nexus imports as the fallback. The private company source list can supply encrypted Google Drive mirrors without changing file ownership, versions or hashes. No mod archives are uploaded to GitHub.
 
 The six exact default HUDCompass resource files recorded in `GENERATED_HUD` are excluded from ownership. The mod recreates them from its embedded resources. This is not a wildcard exclusion and does not delete a friend's existing/custom images.
 
@@ -92,3 +92,13 @@ This option is deliberately a limited snapshot of the known baseline. Adding/rem
 The five explicit personal config names are `BadgersShadingOverhaul.cfg`, `BepInEx.cfg`, `com.maxsch.valheim.vnei.cfg`, `ru.ivest.valheimvisuals.cfg`, and `shudnal.MyLittleUI.cfg`. All their existing keys are preserved when merging new defaults. Gameplay CFGs do not receive that blanket policy.
 
 The bounded anonymous download check is "python publisher/probe_drive_download.py --file-id <ID> --expected-size <bytes>". It reads only the first 1KiB after the standard large-file confirmation form, checks HTTPS Google download hosts and the requested file ID, and requires a matching Content-Range. It uses no OAuth credentials. The upload result also exposes the stable download endpoint, which still needs deliberately granted read access.
+
+## Encrypted company downloads
+
+The owner explicitly chose private company distribution on2026-10-20. The two exact source archives are uploaded to Drive separately and checked against the pinned SHA256, remote size and MD5 before enabling link access. Links are not committed in plaintext.
+
+Use `Publish-CompanySources.ps1 -SourcesFile <private verified receipt JSON>` to prepare locally, then `-Publish` to publish only `channel/company-sources.enc.json`. Input rows contain `id`, `size`, `sha256`, `downloadUrl`, `driveMd5Verified`. The publisher checks the two explicit IDs and their pins against the signed public collection.
+
+A random256-bit code is generated once at `.private/company-code.txt` and reused. The plaintext source payload, signed source list, upload receipts and code all remain in `.private`/ignored artifacts. AES-256-GCM uses a random96-bit nonce and128-bit tag; the decrypted source list additionally requires the pinned ECDSA release signature. A code does not authorize changed mod files or settings.
+
+Share the code privately with friends. The application stores it in the current Windows user settings; it is excluded from diagnostic ZIPs and redacted from logs. This is not per-person authentication or DRM: anyone with a code/decrypted Drive link can share it. Revoking an already leaked Drive link requires changing its Drive permission/file, not merely encrypting the same link again.

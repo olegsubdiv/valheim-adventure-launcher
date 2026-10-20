@@ -21,16 +21,16 @@ public partial class App : Application
             {
                 // Parse the compiled XAML and lay out an invisible window; no network, profile writes or game launch.
                 var window = new MainWindow(selfTest: true);
-                window.Measure(new Size(980, 800));
-                window.Arrange(new Rect(0, 0, 980, 800));
+                window.Measure(new Size(980, 860));
+                window.Arrange(new Rect(0, 0, 980, 860));
                 window.UpdateLayout();
                 var report = args.SkipWhile(a => a != "--self-test").Skip(1).FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(report))
                 {
                     var directory = Path.GetDirectoryName(Path.GetFullPath(report))!;
-                    RenderPreview(window, 980, 800, Path.Combine(directory, "desktop-preview.png"));
-                    RenderPreview(window, 820, 700, Path.Combine(directory, "desktop-preview-minimum.png"));
-                    File.WriteAllText(report, "Desktop self-test passed: WPF resources, release settings and invisible window initialized. Offscreen previews rendered at 980x800 and 820x700 using synthetic paths.", Encoding.UTF8);
+                    RenderPreview(window, 980, 860, Path.Combine(directory, "desktop-preview.png"));
+                    RenderPreview(window, 820, 780, Path.Combine(directory, "desktop-preview-minimum.png"));
+                    File.WriteAllText(report, "Desktop self-test passed: WPF resources, release settings and invisible window initialized. Offscreen previews rendered at 980x860 and 820x780 using synthetic paths.", Encoding.UTF8);
                 }
                 window.Close();
                 return 0;

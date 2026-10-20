@@ -14,7 +14,9 @@ Existing r2modman profiles can be selected directly, including a profile moved t
 - **Collect diagnostics** creates a small ZIP to send to the maintainer.
 - **Play installed** starts the current local collection without a network update.
 
-Willybach HD Higher and Badger Shading Overhaul currently require importing the exact original archive from their official Nexus pages when those files are missing. The launcher opens the source page and asks for the archive; installed matching files do not need another download. Everyone uses the same HD variant.
+Enter the private **Company access code** supplied by the maintainer to enable automatic Willybach HD Higher and Badger downloads from Google Drive. The app remembers it on this PC. Without a code, the exact official Nexus archives can still be imported manually. Matching installed files are reused. Everyone uses the same HD variant.
+
+The public repository contains only an AES-256-GCM encrypted source list. The random 256-bit code stays outside Git. Decrypted sources also carry the maintainer signature and must match the public collection's exact archive hashes. This is shared-code access, not a Google account login: anyone who receives the code or decrypted links can download the archives.
 
 ## Updates
 

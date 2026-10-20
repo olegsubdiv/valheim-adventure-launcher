@@ -14,6 +14,8 @@ public sealed class LauncherSettings
     public string ProfilePath { get; set; } = "";
     public string CachePath { get; set; } = "";
     public string FeedUrl { get; set; } = "";
+    public string CompanySourcesUrl { get; set; } = "";
+    public string CompanyCode { get; set; } = "";
     public string PublicKeyPem { get; set; } = "";
     public Dictionary<string, string> ImportedArtifacts { get; set; } = [];
 }
@@ -62,7 +64,7 @@ public sealed class LauncherController : IDisposable
         var safe = new LauncherSettings
         {
             GamePath = settings.GamePath, ProfilePath = settings.ProfilePath, CachePath = settings.CachePath,
-            ImportedArtifacts = settings.ImportedArtifacts
+            CompanyCode = settings.CompanyCode, ImportedArtifacts = settings.ImportedArtifacts
         };
         var destination = Path.Combine(dataDirectory, "settings.json");
         var temporary = destination + ".tmp";
@@ -98,7 +100,7 @@ public sealed class LauncherController : IDisposable
     {
         ValidatePaths(settings);
         var engine = Engine();
-        var manifest = await engine.FetchAsync(settings.FeedUrl, settings.PublicKeyPem, ct);
+        var manifest = await FetchCollectionAsync(settings, engine, ct);
         return await engine.InspectAsync(manifest, settings.ProfilePath, fullHash, ct);
     }
     public async Task<EngineResult> UpdateAsync(LauncherSettings settings, CancellationToken ct = default)
@@ -106,7 +108,7 @@ public sealed class LauncherController : IDisposable
         ValidatePaths(settings);
         RequireGameClosed();
         var engine = Engine();
-        var manifest = await engine.FetchAsync(settings.FeedUrl, settings.PublicKeyPem, ct);
+        var manifest = await FetchCollectionAsync(settings, engine, ct);
         ValidateBootstrap(manifest, settings.GamePath);
         var result = await engine.ApplyAsync(manifest, settings.ProfilePath, settings.CachePath, settings.ImportedArtifacts, ct);
         EnsureBootstrap(manifest, settings);
@@ -118,6 +120,17 @@ public sealed class LauncherController : IDisposable
     {
         ValidatePaths(settings); RequireGameClosed();
         return await Engine().RollbackAsync(settings.ProfilePath, ct);
+    }
+    private async Task<PackManifest> FetchCollectionAsync(LauncherSettings settings, PackEngine engine, CancellationToken ct)
+    {
+        var manifest = await engine.FetchAsync(settings.FeedUrl, settings.PublicKeyPem, ct);
+        if (!string.IsNullOrWhiteSpace(settings.CompanyCode))
+        {
+            var sources = await CompanyAccess.FetchAsync(http, settings.CompanySourcesUrl, settings.CompanyCode, settings.PublicKeyPem, ct);
+            CompanyAccess.Apply(manifest, sources);
+            Report(new("access", "Company downloads unlocked."));
+        }
+        return manifest;
     }
     private PackEngine Engine() => new(http, new EngineOptions(), new InlineProgress(Report));
     public void Launch(LauncherSettings settings)
@@ -185,6 +198,8 @@ public sealed class LauncherController : IDisposable
                 "\nProfile preloader present: " + File.Exists(Path.Combine(settings.ProfilePath, "BepInEx", "core", "BepInEx.Preloader.dll")));
             foreach (var file in Directory.GetFiles(dataDirectory, "launcher*.log").Take(3))
                 WriteZip(archive, Path.GetFileName(file), ReadTail(file, 256 * 1024));
+            var desktopError = Path.Combine(dataDirectory, "logs", "desktop-error.log");
+            if (File.Exists(desktopError)) WriteZip(archive, "desktop-error.log", ReadTail(desktopError, 64 * 1024));
             foreach (var relative in new[] { "BepInEx/LogOutput.log", "BepInEx/LogOutput.log.1" })
             {
                 var file = Path.Combine(settings.ProfilePath, relative);
@@ -302,6 +317,7 @@ public sealed class LauncherController : IDisposable
     }
     public static string Sanitize(string text)
     {
+        text = Regex.Replace(text, @"ARPG1-[A-Za-z0-9_-]{43}", "<company-code-redacted>");
         text = Regex.Replace(text, @"(?i)([A-Z]:\\Users\\)[^\\\s]+", "$1<user>");
         text = Regex.Replace(text, @"(?i)(password|passwd|access_token|refresh_token|authorization|client_secret)(\s*[:=]\s*|\s+)[^\s,;]+", "$1=<redacted>");
         text = Regex.Replace(text, @"(https?://[^\s?]+)\?[^\s]+", "$1?<redacted>");

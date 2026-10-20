@@ -10,6 +10,9 @@ if (args.Length == 0 || args[0] is "--help" or "help")
       inspect  --manifest envelope.json --key public-key.pem --profile PATH [--full] [--local]
       apply    --manifest envelope.json --key public-key.pem --profile PATH --cache PATH [--imports imports.json] [--local]
       rollback --profile PATH
+      company-code --out PRIVATE_CODE_FILE
+      seal-sources --manifest signed-sources.json --key public-key.pem --code-file PRIVATE_CODE_FILE --out encrypted.json
+      check-sources --encrypted encrypted.json (or --url HTTPS_URL) --key public-key.pem --code-file PRIVATE_CODE_FILE [--base-manifest stable.json]
       discover
     --local allows local/file/loopback sources for isolated development fixtures.
     Signing keys and imported archives are never uploaded by these commands.
@@ -29,6 +32,38 @@ using var cancel = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancel.Cancel(); };
 try
 {
+    if (command == "company-code")
+    {
+        var path = Path.GetFullPath(Required("out"));
+        using var output = new StreamWriter(new FileStream(path, FileMode.CreateNew, FileAccess.Write));
+        output.Write(CompanyAccess.CreateCode());
+        Console.WriteLine("Company code saved locally. Do not publish the code file.");
+        return 0;
+    }
+    if (command == "seal-sources")
+    {
+        var signed = File.ReadAllText(Required("manifest"));
+        CompanyAccess.ValidateSources(ManifestSigning.Verify(signed, File.ReadAllText(Required("key"))));
+        File.WriteAllText(Required("out"), CompanyAccess.Seal(signed, File.ReadAllText(Required("code-file"))));
+        Console.WriteLine("Encrypted company source list prepared.");
+        return 0;
+    }
+    if (command == "check-sources")
+    {
+        var code = File.ReadAllText(Required("code-file"));
+        var publicKey = File.ReadAllText(Required("key"));
+        using var sourceHttp = new HttpClient();
+        var sources = options.ContainsKey("url")
+            ? await CompanyAccess.FetchAsync(sourceHttp, Required("url"), code, publicKey, cancel.Token)
+            : CompanyAccess.Open(File.ReadAllText(Required("encrypted")), code, publicKey);
+        if (options.TryGetValue("base-manifest", out var basePath))
+        {
+            var pack = ManifestSigning.Verify(File.ReadAllText(basePath), publicKey);
+            CompanyAccess.Apply(pack, sources);
+        }
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = true, artifacts = sources.Artifacts.Count }));
+        return 0;
+    }
     if (command == "sign")
     {
         var manifest = JsonSerializer.Deserialize<PackManifest>(File.ReadAllText(Required("manifest")), PackJson.Options) ?? throw new InvalidDataException("Invalid payload.");
