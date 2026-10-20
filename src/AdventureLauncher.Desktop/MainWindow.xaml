@@ -1,0 +1,73 @@
+<Window x:Class="AdventureLauncher.Desktop.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Style="{StaticResource {x:Type Window}}" Title="Valheim Adventure RPG" Width="980" Height="800" MinWidth="820" MinHeight="700" WindowStartupLocation="CenterScreen">
+  <Grid Margin="30">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <Grid>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <StackPanel>
+        <TextBlock Text="VALHEIM · ADVENTURE RPG" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
+        <TextBlock Text="Your next expedition starts here." FontSize="28" FontWeight="SemiBold" Margin="0,8,0,7"/>
+        <TextBlock Text="Install once. Keep the whole collection in sync." Foreground="{StaticResource MutedBrush}"/>
+      </StackPanel>
+      <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+        <TextBlock x:Name="AppVersionText" HorizontalAlignment="Right" Foreground="{StaticResource MutedBrush}" FontSize="12"/>
+        <Button x:Name="LauncherUpdateButton" Content="Update launcher" Click="LauncherUpdate_Click" Visibility="Collapsed" Margin="0,10,0,0"/>
+      </StackPanel>
+    </Grid>
+    <Border Grid.Row="1" Background="{StaticResource CardBrush}" CornerRadius="9" Padding="20" Margin="0,23,0,18">
+      <StackPanel x:Name="SettingsPanel">
+        <TextBlock Text="Your installation" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,15"/>
+        <TextBlock Text="Valheim game folder" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <ComboBox x:Name="GamePathBox" IsEditable="True" ToolTip="The Steam folder containing valheim.exe"/>
+          <Button Grid.Column="1" Content="Browse…" Click="BrowseGame_Click" Margin="9,0,0,0"/>
+        </Grid>
+        <TextBlock Text="Modpack storage folder" Foreground="{StaticResource MutedBrush}" Margin="0,13,0,6"/>
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <ComboBox x:Name="ProfilePathBox" IsEditable="True" ToolTip="Select an existing profile to reuse its files, or choose a new folder on any drive."/>
+          <Button Grid.Column="1" Content="Choose drive / folder…" Click="BrowseProfile_Click" Margin="9,0,0,0"/>
+        </Grid>
+        <TextBlock Text="An existing profile is reused, including its HD textures. For a new installation, choose an empty folder on the drive you want." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0"/>
+        <Expander Header="Download storage" Margin="0,13,0,0">
+          <StackPanel Margin="0,9,0,0">
+            <Grid>
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+              <TextBox x:Name="CachePathBox" ToolTip="Verified downloaded archives are reused on updates."/>
+              <Button Grid.Column="1" Content="Browse…" Click="BrowseCache_Click" Margin="9,0,0,0"/>
+            </Grid>
+            <TextBlock Text="Keep downloads on a drive with enough free space. Original archives can also be imported when requested." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0"/>
+          </StackPanel>
+        </Expander>
+      </StackPanel>
+    </Border>
+    <Border Grid.Row="2" Background="{StaticResource CardBrush}" CornerRadius="9" Padding="20">
+      <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <TextBlock x:Name="StatusTitle" Text="Ready when you are" FontSize="17" FontWeight="SemiBold"/>
+          <Button x:Name="CancelButton" Grid.Column="1" Content="Cancel" Click="Cancel_Click" Visibility="Collapsed" Padding="12,5"/>
+        </Grid>
+        <TextBlock x:Name="StatusDetail" Grid.Row="1" Text="Choose your folders, then install or update the collection." Foreground="{StaticResource MutedBrush}" Margin="0,8,0,13"/>
+        <ProgressBar x:Name="OperationProgress" Grid.Row="2" Height="5" Minimum="0" Maximum="100" Visibility="Collapsed"/>
+        <TextBox x:Name="ActivityLog" Grid.Row="3" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="Transparent" BorderThickness="0" Padding="0" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,12,0,0" MaxHeight="160"/>
+      </Grid>
+    </Border>
+    <StackPanel Grid.Row="3" Margin="0,18,0,0">
+      <Grid x:Name="ActionPanel">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <Button x:Name="VerifyButton" Content="Verify / repair" Click="Verify_Click"/>
+        <Button Grid.Column="1" Content="Restore previous version" Click="Rollback_Click" Margin="8,0,0,0"/>
+        <Button Grid.Column="3" Content="Install / update" Click="Update_Click" Margin="8,0,0,0"/>
+        <Button Grid.Column="4" Content="Update and play" Click="UpdatePlay_Click" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0"/>
+      </Grid>
+      <Grid Margin="0,12,0,0">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <Button x:Name="PlayInstalledButton" Content="Play installed" Click="Play_Click" Padding="0,4" Background="Transparent" Foreground="{StaticResource MutedBrush}"/>
+        <Button x:Name="DiagnosticsButton" Grid.Column="1" Content="Collect diagnostics" Click="Diagnostics_Click" Padding="12,4" Background="Transparent" Foreground="{StaticResource MutedBrush}"/>
+        <Button Grid.Column="3" Content="Open modpack folder" Click="OpenProfile_Click" Padding="0,4" Background="Transparent" Foreground="{StaticResource MutedBrush}"/>
+      </Grid>
+    </StackPanel>
+  </Grid>
+</Window>

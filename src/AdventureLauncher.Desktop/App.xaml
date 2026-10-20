@@ -1,0 +1,20 @@
+<Application x:Class="AdventureLauncher.Desktop.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Application.Resources>
+    <SolidColorBrush x:Key="PageBrush" Color="#111923"/>
+    <SolidColorBrush x:Key="CardBrush" Color="#1A2634"/>
+    <SolidColorBrush x:Key="TextBrush" Color="#EDF2F7"/>
+    <SolidColorBrush x:Key="MutedBrush" Color="#A6B7C9"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#64CBB8"/>
+    <Style TargetType="Window"><Setter Property="Background" Value="{StaticResource PageBrush}"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="14"/></Style>
+    <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="TextWrapping" Value="Wrap"/></Style>
+    <Style TargetType="TextBox"><Setter Property="Background" Value="#101B27"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="BorderBrush" Value="#405265"/><Setter Property="Padding" Value="10,8"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="SelectionBrush" Value="#356D7B"/></Style>
+    <Style TargetType="ComboBox"><Setter Property="Padding" Value="8"/><Setter Property="Foreground" Value="#15202C"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+    <Style TargetType="Button">
+      <Setter Property="Background" Value="#2B4053"/><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="Padding" Value="15,10"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Surface" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="Opacity" Value=".82"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="Surface" Property="Opacity" Value=".4"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Setter Property="Background" Value="{StaticResource AccentBrush}"/><Setter Property="Foreground" Value="#102620"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+    <Style TargetType="Expander"><Setter Property="Foreground" Value="{StaticResource MutedBrush}"/></Style>
+    <Style TargetType="ProgressBar"><Setter Property="Foreground" Value="{StaticResource AccentBrush}"/><Setter Property="Background" Value="#101B27"/><Setter Property="BorderThickness" Value="0"/></Style>
+  </Application.Resources>
+</Application>

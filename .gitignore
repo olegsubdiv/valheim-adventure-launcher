@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+.tools/
+.private/
+artifacts/
+publish-output/
+*.user
+*.pfx
+*.key
+*.pem
+!**/public-key.pem
+__pycache__/
+*.pyc

@@ -1,0 +1,43 @@
+# Valheim Adventure RPG Launcher
+
+A small Windows launcher for our pinned cooperative Valheim collection.
+
+## Players
+
+Download **AdventureLauncher-Setup.exe** from the [latest launcher release](https://github.com/olegsubdiv/valheim-adventure-launcher/releases/latest). Install it, select your Steam Valheim folder and the modpack storage folder, then choose **Update and play**.
+
+Existing r2modman profiles can be selected directly, including a profile moved to another drive through a junction. Matching installed files are reused. New installations can use an empty folder on any drive. Keep Steam signed in.
+
+- **Install / update** applies the published collection without starting the game.
+- **Verify / repair** checks hashes and repairs missing or damaged managed files.
+- **Restore previous version** restores the last completed update.
+- **Collect diagnostics** creates a small ZIP to send to the maintainer.
+- **Play installed** starts the current local collection without a network update.
+
+Willybach HD Higher and Badger Shading Overhaul currently require importing the exact original archive from their official Nexus pages when those files are missing. The launcher opens the source page and asks for the archive; installed matching files do not need another download. Everyone uses the same HD variant.
+
+## Updates
+
+The application and collection have separate versions. [Velopack](https://velopack.io) handles application updates from stable GitHub Releases. The signed channel/stable.json describes the collection. Content releases are prereleases so they do not replace the latest application installer.
+
+Versions and SHA256 hashes are pinned. Catalog packages come from Thunderstore/Hexium. The repository publishes our configuration snapshot and source metadata. Permitted raw files may also be hosted on Google Drive.
+
+Downloads are staged and verified before commit. Only changed files are backed up. A transaction journal recovers interrupted changes. Removed managed files are deleted only if they still match their recorded installed contents. Personal keys in the configured settings policy survive updates.
+
+Logs rotate at approximately 256 KiB, keeping three files; diagnostics retain three bounded ZIPs. Downloaded archives are cached separately. The launcher keeps game saves and server worlds outside its update targets.
+
+## Maintainers
+
+Build on Windows with Python 3.12+ and .NET SDK 10.0.402. A private local SDK can be placed in .tools/dotnet. Dependencies are pinned.
+
+Run **build/Build.ps1 -Version 0.1.0**. It runs regressions, publishes a self-contained application, performs an invisible WPF smoke/render check, and creates the installer, portable archive and update assets under artifacts/releases.
+
+Prepare a collection with **publisher/Release-Pack.ps1 -Version 2026.10.20.2 -ClientRoot D:\\PreparedClient**. Use the explicit live-profile/server-config options documented in [publisher/README.md](publisher/README.md) for changed configurations. Review local output, then repeat with **-Publish**. Assets are uploaded and downloaded for checksum verification before the stable channel is pushed. Published content versions are immutable.
+
+The signing key is local at .private/manifest-signing.pem, excluded from Git. The public key is bundled with the application. Preserve a secure backup of the private key; replacing it requires a deliberate trust migration. Publisher credentials and server passwords must never be included in a release.
+
+Google Drive publishing uses the separate publisher tools. OAuth credentials remain in local application data; players never receive them.
+
+## License
+
+Our code is MIT. Bundled runtime and dependencies retain their own licenses. Mods and texture packs retain their authors' terms.
