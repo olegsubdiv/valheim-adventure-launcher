@@ -36,8 +36,9 @@ try
     {
         var key = File.ReadAllText(Required("key"));
         var baseline = ManifestSigning.Verify(File.ReadAllText(Required("base-manifest")), key);
-        var variant = ManifestSigning.Verify(File.ReadAllText(Required("manifest")), key);
-        var composed = TextureVariants.Compose(baseline, TextureVariants.Medium, variant);
+        var quality = options.GetValueOrDefault("quality", TextureVariants.Medium);
+        var variant = quality == TextureVariants.Medium ? ManifestSigning.Verify(File.ReadAllText(Required("manifest")), key) : null;
+        var composed = TextureVariants.Compose(baseline, quality, variant);
         Console.WriteLine(JsonSerializer.Serialize(new { valid = true, quality = composed.TextureQuality,
             version = composed.Version, files = composed.Files.Count, artifacts = composed.Artifacts.Count }, PackJson.Options));
         return 0;

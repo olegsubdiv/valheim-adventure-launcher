@@ -10,7 +10,10 @@ var tests = new (string Name, Func<Task> Run)[]
     ("Higher/Medium transitions, idempotence and rollback", Transitions),
     ("cancelled texture switch restores previous variant", Cancellation),
     ("legacy Higher-only cleanup is pinned and transactional", Legacy),
-    ("new profile default, existing quality and settings trust", Defaults)
+    ("new profile default, existing quality and settings trust", Defaults),
+    ("Original install and round trips preserve gameplay without HD downloads", Original),
+    ("Original switch cancellation and modified files preserve previous HD", OriginalSafety),
+    ("legacy Original cleanup uses only exact baseline pins", OriginalLegacy)
 };
 var failures = 0;
 foreach (var (name, run) in tests)
@@ -125,10 +128,90 @@ static Task Defaults()
     f.Write(Fixture.Plugin, "existing plugin");
     Assert(TextureVariants.ResolveTextureQuality(f.Profile) == "higher", "Existing Higher installation was downgraded by default.");
     Assert(TextureVariants.ResolveTextureQuality(f.Profile, "Medium") == "medium", "Explicit player choice ignored.");
+    Assert(TextureVariants.ResolveTextureQuality(f.Profile, "Original") == "original", "Explicit no-HD choice ignored.");
     using var controller = new LauncherController(dataDirectory: Path.Combine(f.Root, "app-data"));
-    controller.SaveSettings(new LauncherSettings { ProfilePath = f.Profile, TextureQuality = "medium", TextureVariantUrl = "untrusted-texture-channel" });
-    Assert(controller.LoadSettings().TextureQuality == "medium" && !File.ReadAllText(Path.Combine(f.Root, "app-data/settings.json")).Contains("untrusted-texture-channel"), "Texture preference or trust persistence incorrect.");
+    controller.SaveSettings(new LauncherSettings { ProfilePath = f.Profile, TextureQuality = "original", TextureVariantUrl = "untrusted-texture-channel" });
+    Assert(controller.LoadSettings().TextureQuality == "original" && !File.ReadAllText(Path.Combine(f.Root, "app-data/settings.json")).Contains("untrusted-texture-channel"), "Texture preference or trust persistence incorrect.");
     return Task.CompletedTask;
+}
+
+static async Task Original()
+{
+    using var f = new Fixture(); var engine = Engine();
+    var original = TextureVariants.Compose(f.Higher, TextureVariants.Original);
+    Assert(original.TextureQuality == "original" && original.Files.All(p => !p.Path.StartsWith("BepInEx/plugins/HDValheimTextures")), "HD inventory remained in Original.");
+    Assert(original.Artifacts.All(a => a.Id != TextureVariants.HigherArtifactId && a.Id != TextureVariants.MediumArtifactId), "Original still requests HD archives.");
+    Assert(f.Higher.TextureQuality == null && f.Higher.Files.Count == 4, "Original composition mutated baseline.");
+    var escaped = Clone(f.Higher); escaped.Files[0].Path = "BepInEx/plugins/Gameplay.dll";
+    await Throws<InvalidDataException>(() => Task.FromResult(TextureVariants.Compose(escaped, "original")));
+    var hdArchive = f.Higher.Artifacts[0].Urls[0];
+    File.Move(hdArchive, hdArchive + ".unavailable");
+    await engine.ApplyAsync(original, f.Profile, f.Cache);
+    Assert(!File.Exists(f.PathOf(Fixture.Plugin)) && TextureVariants.ResolveTextureQuality(f.Profile) == "original", "Fresh Original installed HD or lost selected quality.");
+    File.Move(hdArchive + ".unavailable", hdArchive);
+    var balance = File.ReadAllBytes(f.PathOf(Fixture.Balance));
+    var balanceTime = File.GetLastWriteTimeUtc(f.PathOf(Fixture.Balance));
+    foreach (var hd in new[] { TextureVariants.Compose(f.Higher, "higher"), TextureVariants.Compose(f.Higher, "medium", f.Medium) })
+    {
+        await engine.ApplyAsync(hd, f.Profile, f.Cache);
+        var plan = await engine.InspectAsync(original, f.Profile);
+        Assert(plan.RequiredArtifactIds.Count == 0 && plan.ChangedFiles.Count == 0 && plan.RemovedFiles.Count == 3, "Disabling HD downloads or changes unrelated files.");
+        await engine.ApplyAsync(original, f.Profile, f.Cache);
+        Assert(!File.Exists(f.PathOf(Fixture.Plugin)) && !File.Exists(f.PathOf(Fixture.Textures)) &&
+            !File.Exists(f.PathOf(Fixture.MediumOnly)) && !File.Exists(f.PathOf(Fixture.HigherOnly)), "HD files left after disabling textures.");
+        Assert(TextureVariants.ResolveTextureQuality(f.Profile) == "original", "Original state not recorded.");
+        var again = await engine.ApplyAsync(original, f.Profile, f.Cache);
+        Assert(again.WrittenFiles == 0 && again.RemovedFiles == 0, "Original is not idempotent.");
+        await engine.RollbackAsync(f.Profile);
+        Assert(TextureVariants.ResolveTextureQuality(f.Profile) == hd.TextureQuality && File.Exists(f.PathOf(Fixture.Plugin)), "Original rollback did not restore HD.");
+        await engine.ApplyAsync(original, f.Profile, f.Cache);
+        await engine.ApplyAsync(hd, f.Profile, f.Cache);
+        await engine.RollbackAsync(f.Profile);
+        Assert(TextureVariants.ResolveTextureQuality(f.Profile) == "original" && !File.Exists(f.PathOf(Fixture.Plugin)), "Rollback from restored HD did not return to Original.");
+    }
+    Assert(balance.SequenceEqual(File.ReadAllBytes(f.PathOf(Fixture.Balance))) && balanceTime == File.GetLastWriteTimeUtc(f.PathOf(Fixture.Balance)), "Original switches modified gameplay.");
+}
+
+static async Task OriginalSafety()
+{
+    foreach (var quality in new[] { "medium", "higher" })
+    {
+        using var f = new Fixture();
+        await Engine().ApplyAsync(TextureVariants.Compose(f.Higher, quality, f.Medium), f.Profile, f.Cache);
+        var before = File.ReadAllText(f.PathOf(Fixture.Plugin));
+        using var cancel = new CancellationTokenSource();
+        var engine = Engine(new SyncProgress(p => { if (p.Phase == "apply") cancel.Cancel(); }));
+        await Throws<OperationCanceledException>(() => engine.ApplyAsync(TextureVariants.Compose(f.Higher, "original"), f.Profile, f.Cache, ct: cancel.Token));
+        Assert(File.ReadAllText(f.PathOf(Fixture.Plugin)) == before && TextureVariants.ResolveTextureQuality(f.Profile) == quality, "Cancelled Original switch lost HD/state.");
+        Assert(File.ReadAllText(f.PathOf(Fixture.Textures)) == quality + "-textures" && File.Exists(f.PathOf(quality == "medium" ? Fixture.MediumOnly : Fixture.HigherOnly)), "Cancelled Original switch lost texture data.");
+        f.Write(Fixture.Textures, "personal modification");
+        await Throws<IOException>(() => Engine().ApplyAsync(TextureVariants.Compose(f.Higher, "original"), f.Profile, f.Cache));
+        Assert(File.ReadAllText(f.PathOf(Fixture.Textures)) == "personal modification" && File.ReadAllText(f.PathOf(Fixture.Plugin)) == before, "Modified HD was deleted or disabled before refusal.");
+    }
+}
+
+static async Task OriginalLegacy()
+{
+    using var f = new Fixture(); var engine = Engine();
+    foreach (var (path, content) in f.HigherContents) f.Write(path, content);
+    f.Write("BepInEx/plugins/Unrelated.dll", "keep");
+    var original = TextureVariants.Compose(f.Higher, "original");
+    await engine.ApplyAsync(original, f.Profile, f.Cache);
+    Assert(!File.Exists(f.PathOf(Fixture.Plugin)) && File.ReadAllText(f.PathOf("BepInEx/plugins/Unrelated.dll")) == "keep", "Legacy cleanup touched unrelated files or left HD.");
+    await engine.RollbackAsync(f.Profile);
+    Assert(File.ReadAllText(f.PathOf(Fixture.Plugin)) == "higher-plugin" && !File.Exists(f.PathOf(".arpg/state.json")), "Legacy rollback lost HD or introduced state.");
+    f.Write(Fixture.Textures, "personal modification");
+    await Throws<IOException>(() => engine.ApplyAsync(original, f.Profile, f.Cache));
+    Assert(File.ReadAllText(f.PathOf(Fixture.Plugin)) == "higher-plugin" && File.ReadAllText(f.PathOf(Fixture.Textures)) == "personal modification", "Legacy unpinned HD bytes were deleted.");
+    f.Write(Fixture.Textures, "higher-textures");
+    await engine.ApplyAsync(TextureVariants.Compose(f.Higher, "higher"), f.Profile, f.Cache);
+    var statePath = f.PathOf(".arpg/state.json");
+    var state = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(statePath))!;
+    state["textureQuality"] = null; // Old launcher ownership metadata did not record texture quality.
+    File.WriteAllText(statePath, state.ToJsonString(PackJson.Options));
+    f.Write(Fixture.Plugin, "modified legacy plugin");
+    await Throws<IOException>(() => engine.ApplyAsync(original, f.Profile, f.Cache));
+    Assert(File.ReadAllText(f.PathOf(Fixture.Plugin)) == "modified legacy plugin", "Old ownership metadata allowed modified HD removal.");
 }
 
 sealed class SyncProgress(Action<PackProgress> action) : IProgress<PackProgress> { public void Report(PackProgress value) => action(value); }

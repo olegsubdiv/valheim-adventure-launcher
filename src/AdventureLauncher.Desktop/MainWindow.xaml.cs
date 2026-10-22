@@ -56,7 +56,7 @@ public partial class MainWindow : Window
         CompanyCodeBox.Password = _settings.CompanyCode;
         GameLanguageBox.ItemsSource = new[] { "English", "\u0420\u0443\u0441\u0441\u043a\u0438\u0439" };
         GameLanguageBox.SelectedIndex = string.Equals(_settings.GameLanguage, GameLanguages.Russian, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
-        TextureQualityBox.ItemsSource = new[] { "Medium", "Higher" };
+        TextureQualityBox.ItemsSource = new[] { "Original (no HD)", "Medium", "Higher" };
         _textureProfile = _settings.ProfilePath;
         SelectTextureQuality(TextureVariants.ResolveTextureQuality(_textureProfile, _settings.TextureQuality));
         ProfilePathBox.AddHandler(TextBox.TextChangedEvent, new TextChangedEventHandler((_, _) => RefreshTextureChoiceForProfile()));
@@ -84,14 +84,34 @@ public partial class MainWindow : Window
         return _settings;
     }
 
-    private string SelectedTextureQuality() => (TextureQualityBox.SelectedItem as string)?.ToLowerInvariant() ?? "medium";
-    private static string TextureQualityLabel(string quality) => quality == TextureVariants.Medium ? "Medium" : "Higher";
+    private string SelectedTextureQuality() => TextureQualityBox.SelectedIndex switch
+    {
+        0 => TextureVariants.Original,
+        2 => TextureVariants.Higher,
+        _ => TextureVariants.Medium
+    };
+    private static string TextureQualityLabel(string quality) => quality switch
+    {
+        TextureVariants.Original => "Original (no HD)",
+        TextureVariants.Medium => "Medium",
+        _ => "Higher"
+    };
     private static string DisplayVersion(string version) => version.Split("+textures.", 2, StringSplitOptions.None)[0];
 
     private void SelectTextureQuality(string quality)
     {
-        TextureQualityBox.SelectedItem = TextureQualityBox.Items.Cast<string>()
-            .First(item => string.Equals(item, quality, StringComparison.OrdinalIgnoreCase));
+        TextureQualityBox.SelectedItem = TextureQualityLabel(TextureVariants.Normalize(quality));
+    }
+
+    internal void VerifyTextureChoicesForSelfTest()
+    {
+        var previous = SelectedTextureQuality();
+        foreach (var quality in new[] { TextureVariants.Original, TextureVariants.Medium, TextureVariants.Higher })
+        {
+            SelectTextureQuality(quality);
+            if (SelectedTextureQuality() != quality) throw new InvalidOperationException("Texture choice did not round-trip: " + quality);
+        }
+        SelectTextureQuality(previous);
     }
 
     private void RefreshTextureChoiceForProfile()
@@ -143,7 +163,7 @@ public partial class MainWindow : Window
             {
                 var result = await _controller.UpdateAsync(settings, ct);
                 StatusTitle.Text = "Collection is ready";
-                StatusDetail.Text = $"{TextureQualityLabel(settings.TextureQuality)} textures. Version {DisplayVersion(result.Version)}. {result.WrittenFiles} files installed or updated.";
+                StatusDetail.Text = $"{TextureQualityLabel(settings.TextureQuality)} textures. Version {DisplayVersion(result.Version)}. {result.WrittenFiles} files updated, {result.RemovedFiles} removed.";
                 return;
             }
             catch (ManualArtifactRequiredException ex)

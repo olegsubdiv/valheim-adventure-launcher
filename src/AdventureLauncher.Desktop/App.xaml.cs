@@ -21,6 +21,7 @@ public partial class App : Application
             {
                 // Parse the compiled XAML and lay out an invisible window; no network, profile writes or game launch.
                 var window = new MainWindow(selfTest: true);
+                window.VerifyTextureChoicesForSelfTest();
                 window.Measure(new Size(980, 940));
                 window.Arrange(new Rect(0, 0, 980, 940));
                 window.UpdateLayout();

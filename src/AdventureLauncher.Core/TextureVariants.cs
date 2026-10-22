@@ -4,6 +4,7 @@ namespace AdventureLauncher.Core;
 
 public static class TextureVariants
 {
+    public const string Original = "original";
     public const string Medium = "medium";
     public const string Higher = "higher";
     public const string HigherArtifactId = "Willybach-HDValheim_Higher-2.0.0";
@@ -30,9 +31,10 @@ public static class TextureVariants
 
     public static string Normalize(string quality) => quality.Trim().ToLowerInvariant() switch
     {
+        Original => Original,
         Medium => Medium,
         Higher => Higher,
-        _ => throw new InvalidDataException("Choose Medium or Higher textures.")
+        _ => throw new InvalidDataException("Choose Original (no HD), Medium or Higher textures.")
     };
 
     // Both inputs must first pass ManifestSigning.Verify with the bundled release key.
@@ -46,19 +48,29 @@ public static class TextureVariants
         var result = JsonSerializer.Deserialize<PackManifest>(JsonSerializer.Serialize(baseline, PackJson.Options), PackJson.Options)!;
         result.TextureQuality = quality;
         if (quality == Higher) return result;
+        var higher = baseline.Artifacts.SingleOrDefault(a => a.Id == HigherArtifactId)
+            ?? throw new InvalidDataException("The baseline HD texture package is missing.");
+        var higherFiles = baseline.Files.Where(f => f.ArtifactId.Equals(higher.Id, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (higherFiles.Count == 0 || higherFiles.Any(f => !InScope(f)))
+            throw new InvalidDataException("The baseline texture inventory has an invalid scope.");
+        if (quality == Original)
+        {
+            result.Artifacts.RemoveAll(a => a.Id.Equals(higher.Id, StringComparison.OrdinalIgnoreCase));
+            result.Files.RemoveAll(f => f.ArtifactId.Equals(higher.Id, StringComparison.OrdinalIgnoreCase));
+            result.LegacyTextureFiles = higherFiles;
+            result.Version = baseline.Version + "+textures.original";
+            ManifestValidation.Validate(result);
+            return result;
+        }
         if (variant == null) throw new InvalidDataException("The Medium texture manifest is missing.");
         ManifestValidation.Validate(variant);
         var scope = variant.TextureVariant;
-        var higher = baseline.Artifacts.SingleOrDefault(a => a.Id == HigherArtifactId);
-        if (higher == null || scope == null || scope.Id != Medium || scope.BaseArtifactId != higher.Id ||
+        if (scope == null || scope.Id != Medium || scope.BaseArtifactId != higher.Id ||
             !scope.BaseArtifactSha256.Equals(higher.Sha256, StringComparison.OrdinalIgnoreCase) ||
             variant.PackId != "adventure-rpg-textures-medium" || variant.TextureQuality != null ||
             variant.Artifacts.Count != 1 || variant.Artifacts[0].Id != MediumArtifactId ||
             variant.Artifacts[0].Kind != "7z")
             throw new InvalidDataException("The Medium texture manifest does not match this collection.");
-        var higherFiles = baseline.Files.Where(f => f.ArtifactId.Equals(higher.Id, StringComparison.OrdinalIgnoreCase)).ToList();
-        if (higherFiles.Count == 0 || higherFiles.Any(f => !InScope(f)))
-            throw new InvalidDataException("The baseline texture inventory has an invalid scope.");
         if (variant.Files.Count == 0 || variant.Files.Any(f => !InScope(f)) ||
             !variant.Files.Any(f => ManifestValidation.Normalize(f.Path).Equals(PluginPath, StringComparison.OrdinalIgnoreCase)) ||
             !variant.Files.Any(f => ManifestValidation.Normalize(f.Path).Equals(DataPath + "Textures.dat", StringComparison.OrdinalIgnoreCase)))

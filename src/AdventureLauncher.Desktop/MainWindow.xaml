@@ -50,7 +50,7 @@
             <PasswordBox x:Name="CompanyCodeBox" MaxLength="64" Background="#101B27" Foreground="{StaticResource TextBrush}" BorderBrush="#405265" Padding="10,8" ToolTip="Paste the secret code from the maintainer to enable automatic HD and shader downloads. It is saved on this PC."/>
           </StackPanel>
         </Grid>
-        <TextBlock Text="Medium: starting choice for 12 GB cards; memory use varies. Higher: more detail." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0"/>
+        <TextBlock Text="Original: no HD textures, lighter memory use. Medium / Higher: HD textures." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0"/>
         <TextBlock Text="Apply with Install / update while Valheim is closed. Play keeps the current files." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"/>
         <TextBlock Text="Game language applies at launch. Mods use their available translations; some text may remain English." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"/>
         <TextBlock Text="The code unlocks automatic HD and shader downloads. Without it, you can import original archives manually." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"/>
