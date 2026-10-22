@@ -102,6 +102,7 @@ internal sealed class InstalledState
     public int SchemaVersion { get; set; } = 1;
     public string PackId { get; set; } = "";
     public string Version { get; set; } = "";
+    public string? TextureQuality { get; set; }
     public Dictionary<string, InstalledFile> Files { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
 internal sealed class InstalledFile

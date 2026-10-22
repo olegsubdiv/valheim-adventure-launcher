@@ -25,12 +25,21 @@ try {
     $envelope=Get-Content (Join-Path $repo 'channel\stable.json') -Raw | ConvertFrom-Json
     $pack=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($envelope.payload)) | ConvertFrom-Json
     $sources=@(Get-Content -LiteralPath $SourcesFile -Raw | ConvertFrom-Json)
-    if($sources.Count -ne 2){throw 'Expected the two explicitly selected HD and shader archives.'}
-    $allowed=@('Badger-ShadingOverhaul-0.6.0','Willybach-HDValheim_Higher-2.0.0')
+    if($sources.Count -notin @(2,3)){throw 'Expected the two baseline archives and optional Medium textures.'}
+    $allArtifacts=@($pack.artifacts)
+    $variantPath=Join-Path $repo 'channel\textures-medium.json'
+    if(Test-Path -LiteralPath $variantPath){
+        Invoke-Cli @('verify','--manifest',$variantPath,'--key',$publicKey)
+        $variantEnvelope=Get-Content -LiteralPath $variantPath -Raw | ConvertFrom-Json
+        $variant=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($variantEnvelope.payload)) | ConvertFrom-Json
+        if($variant.packId -ne 'adventure-rpg-textures-medium' -or $variant.textureVariant.baseArtifactId -ne 'Willybach-HDValheim_Higher-2.0.0'){throw 'Unexpected texture variant scope.'}
+        $allArtifacts+=@($variant.artifacts)
+    }
+    $allowed=@('Badger-ShadingOverhaul-0.6.0','Willybach-HDValheim_Higher-2.0.0','Willybach-HDValheim_Medium-2.0.0')
     $artifacts=@()
     foreach($source in $sources) {
         if($source.id -notin $allowed){throw 'Unexpected company archive.'}
-        $artifact=@($pack.artifacts | Where-Object {$_.id -eq $source.id})
+        $artifact=@($allArtifacts | Where-Object {$_.id -eq $source.id})
         if($artifact.Count -ne 1 -or $artifact[0].size -ne $source.size -or $artifact[0].sha256 -ne $source.sha256){throw 'Company archive pin does not match the signed collection.'}
         if(-not $source.driveMd5Verified){throw 'The Drive upload has not been verified.'}
         $artifact[0].urls=@($source.downloadUrl)
@@ -38,7 +47,8 @@ try {
         $artifact[0].instructions=$null
         $artifacts+= $artifact[0]
     }
-    if(@($artifacts.id | Sort-Object -Unique).Count -ne 2){throw 'Duplicate company archive.'}
+    if(@($artifacts.id | Sort-Object -Unique).Count -ne $sources.Count){throw 'Duplicate company archive.'}
+    foreach($requiredId in @('Badger-ShadingOverhaul-0.6.0','Willybach-HDValheim_Higher-2.0.0')){if($requiredId -notin $artifacts.id){throw 'A baseline company archive is missing.'}}
     $payload=[ordered]@{schemaVersion=1;packId='adventure-rpg-company-sources';title='Company archive sources';version=([DateTime]::UtcNow.ToString('yyyyMMddHHmmss'));publishedAt=[DateTimeOffset]::UtcNow.ToString('o');artifacts=$artifacts;files=@()}
     [IO.File]::WriteAllText($payloadPath,($payload | ConvertTo-Json -Depth 10),[Text.UTF8Encoding]::new($false))
     if(-not(Test-Path -LiteralPath $codeFile)){Invoke-Cli @('company-code','--out',$codeFile)}

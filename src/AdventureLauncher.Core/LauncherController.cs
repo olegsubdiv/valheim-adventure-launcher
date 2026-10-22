@@ -16,6 +16,8 @@ public sealed class LauncherSettings
     public string FeedUrl { get; set; } = "";
     public string CompanySourcesUrl { get; set; } = "";
     public string CompanyCode { get; set; } = "";
+    public string TextureQuality { get; set; } = "";
+    public string TextureVariantUrl { get; set; } = "";
     public string PublicKeyPem { get; set; } = "";
     public Dictionary<string, string> ImportedArtifacts { get; set; } = [];
 }
@@ -64,7 +66,7 @@ public sealed class LauncherController : IDisposable
         var safe = new LauncherSettings
         {
             GamePath = settings.GamePath, ProfilePath = settings.ProfilePath, CachePath = settings.CachePath,
-            CompanyCode = settings.CompanyCode, ImportedArtifacts = settings.ImportedArtifacts
+            CompanyCode = settings.CompanyCode, TextureQuality = settings.TextureQuality, ImportedArtifacts = settings.ImportedArtifacts
         };
         var destination = Path.Combine(dataDirectory, "settings.json");
         var temporary = destination + ".tmp";
@@ -112,6 +114,7 @@ public sealed class LauncherController : IDisposable
         ValidateBootstrap(manifest, settings.GamePath);
         var result = await engine.ApplyAsync(manifest, settings.ProfilePath, settings.CachePath, settings.ImportedArtifacts, ct);
         EnsureBootstrap(manifest, settings);
+        settings.TextureQuality = manifest.TextureQuality ?? TextureVariants.ResolveTextureQuality(settings.ProfilePath);
         SaveSettings(settings);
         InstallShortcuts();
         return result;
@@ -119,11 +122,23 @@ public sealed class LauncherController : IDisposable
     public async Task<EngineResult> RollbackAsync(LauncherSettings settings, CancellationToken ct = default)
     {
         ValidatePaths(settings); RequireGameClosed();
-        return await Engine().RollbackAsync(settings.ProfilePath, ct);
+        var result = await Engine().RollbackAsync(settings.ProfilePath, ct);
+        settings.TextureQuality = TextureVariants.ResolveTextureQuality(settings.ProfilePath);
+        SaveSettings(settings);
+        return result;
     }
     private async Task<PackManifest> FetchCollectionAsync(LauncherSettings settings, PackEngine engine, CancellationToken ct)
     {
         var manifest = await engine.FetchAsync(settings.FeedUrl, settings.PublicKeyPem, ct);
+        var quality = TextureVariants.ResolveTextureQuality(settings.ProfilePath, settings.TextureQuality);
+        PackManifest? variant = null;
+        if (quality == TextureVariants.Medium)
+        {
+            if (string.IsNullOrWhiteSpace(settings.TextureVariantUrl))
+                throw new InvalidDataException("The bundled Medium texture channel is missing. Update the launcher.");
+            variant = await engine.FetchAsync(settings.TextureVariantUrl, settings.PublicKeyPem, ct);
+        }
+        manifest = TextureVariants.Compose(manifest, quality, variant);
         if (!string.IsNullOrWhiteSpace(settings.CompanyCode))
         {
             var sources = await CompanyAccess.FetchAsync(http, settings.CompanySourcesUrl, settings.CompanyCode, settings.PublicKeyPem, ct);

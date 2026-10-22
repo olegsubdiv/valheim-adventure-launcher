@@ -20,6 +20,8 @@ public partial class MainWindow : Window
     private bool _closeAfterOperation;
     private readonly string? _selfTestData;
     private bool _cacheExplicitlyChosen;
+    private readonly Dictionary<string, string> _textureChoices = new(StringComparer.OrdinalIgnoreCase);
+    private string _textureProfile = "";
 
     public MainWindow(bool selfTest = false)
     {
@@ -37,6 +39,7 @@ public partial class MainWindow : Window
         // Trust and channel URLs come from the installed application; only the company decryption code is user supplied.
         _settings.FeedUrl = _release.FeedUrl;
         _settings.CompanySourcesUrl = _release.CompanySourcesUrl;
+        _settings.TextureVariantUrl = _release.TextureVariantUrl;
         _settings.PublicKeyPem = _release.PublicKeyPem;
         if (!selfTest)
         {
@@ -49,6 +52,11 @@ public partial class MainWindow : Window
         ProfilePathBox.Text = _settings.ProfilePath;
         CachePathBox.Text = _settings.CachePath;
         CompanyCodeBox.Password = _settings.CompanyCode;
+        TextureQualityBox.ItemsSource = new[] { "Medium", "Higher" };
+        _textureProfile = _settings.ProfilePath;
+        SelectTextureQuality(TextureVariants.ResolveTextureQuality(_textureProfile, _settings.TextureQuality));
+        ProfilePathBox.AddHandler(TextBox.TextChangedEvent, new TextChangedEventHandler((_, _) => RefreshTextureChoiceForProfile()));
+        ProfilePathBox.SelectionChanged += (_, _) => RefreshTextureChoiceForProfile();
         AppVersionText.Text = "Launcher " + (Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "development");
         if (!selfTest) Loaded += async (_, _) => await CheckLauncherUpdateAsync();
     }
@@ -59,13 +67,35 @@ public partial class MainWindow : Window
         _settings.ProfilePath = ProfilePathBox.Text.Trim();
         _settings.CachePath = CachePathBox.Text.Trim();
         _settings.CompanyCode = CompanyCodeBox.Password.Trim();
+        RefreshTextureChoiceForProfile();
+        _settings.TextureQuality = SelectedTextureQuality();
         _settings.FeedUrl = _release.FeedUrl;
         _settings.CompanySourcesUrl = _release.CompanySourcesUrl;
+        _settings.TextureVariantUrl = _release.TextureVariantUrl;
         _settings.PublicKeyPem = _release.PublicKeyPem;
         if (string.IsNullOrWhiteSpace(_settings.ProfilePath)) throw new InvalidOperationException("Choose a modpack storage folder first.");
         if (string.IsNullOrWhiteSpace(_settings.CachePath)) throw new InvalidOperationException("Choose a download storage folder first.");
         _controller.SaveSettings(_settings);
         return _settings;
+    }
+
+    private string SelectedTextureQuality() => (TextureQualityBox.SelectedItem as string)?.ToLowerInvariant() ?? "medium";
+    private static string TextureQualityLabel(string quality) => quality == TextureVariants.Medium ? "Medium" : "Higher";
+    private static string DisplayVersion(string version) => version.Split("+textures.", 2, StringSplitOptions.None)[0];
+
+    private void SelectTextureQuality(string quality)
+    {
+        TextureQualityBox.SelectedItem = TextureQualityBox.Items.Cast<string>()
+            .First(item => string.Equals(item, quality, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void RefreshTextureChoiceForProfile()
+    {
+        var profile = ProfilePathBox.Text.Trim();
+        if (string.Equals(profile, _textureProfile, StringComparison.OrdinalIgnoreCase)) return;
+        if (!string.IsNullOrWhiteSpace(_textureProfile)) _textureChoices[_textureProfile] = SelectedTextureQuality();
+        _textureProfile = profile;
+        SelectTextureQuality(TextureVariants.ResolveTextureQuality(profile, _textureChoices.GetValueOrDefault(profile)));
     }
 
     private async Task RunAsync(string title, Func<LauncherSettings, CancellationToken, Task> action)
@@ -108,7 +138,7 @@ public partial class MainWindow : Window
             {
                 var result = await _controller.UpdateAsync(settings, ct);
                 StatusTitle.Text = "Collection is ready";
-                StatusDetail.Text = $"Version {result.Version}. {result.WrittenFiles} files installed or updated.";
+                StatusDetail.Text = $"{TextureQualityLabel(settings.TextureQuality)} textures. Version {DisplayVersion(result.Version)}. {result.WrittenFiles} files installed or updated.";
                 return;
             }
             catch (ManualArtifactRequiredException ex)
@@ -137,7 +167,7 @@ public partial class MainWindow : Window
         if (plan.IsCurrent)
         {
             StatusTitle.Text = "All managed files verified";
-            StatusDetail.Text = $"Version {plan.Version} is ready.";
+            StatusDetail.Text = $"{TextureQualityLabel(settings.TextureQuality)} textures. Version {DisplayVersion(plan.Version)} is ready.";
             return;
         }
         AppendLog($"Repair needed: {plan.ChangedFiles.Count} files; {plan.RemovedFiles.Count} managed files removed by this release.");
@@ -149,8 +179,10 @@ public partial class MainWindow : Window
         await RunAsync("Restoring previous version", async (settings, ct) =>
         {
             var result = await _controller.RollbackAsync(settings, ct);
+            SelectTextureQuality(settings.TextureQuality);
+            _textureChoices[settings.ProfilePath] = settings.TextureQuality;
             StatusTitle.Text = "Previous version restored";
-            StatusDetail.Text = $"Restored version {result.Version}.";
+            StatusDetail.Text = $"{TextureQualityLabel(settings.TextureQuality)} textures. Restored version {DisplayVersion(result.Version)}.";
         });
     }
     private async void Play_Click(object sender, RoutedEventArgs e) => await RunAsync("Starting installed collection", (settings, ct) =>

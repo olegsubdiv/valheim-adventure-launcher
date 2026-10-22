@@ -102,3 +102,25 @@ Use `Publish-CompanySources.ps1 -SourcesFile <private verified receipt JSON>` to
 A random256-bit code is generated once at `.private/company-code.txt` and reused. The plaintext source payload, signed source list, upload receipts and code all remain in `.private`/ignored artifacts. AES-256-GCM uses a random96-bit nonce and128-bit tag; the decrypted source list additionally requires the pinned ECDSA release signature. A code does not authorize changed mod files or settings.
 
 Share the code privately with friends. The application stores it in the current Windows user settings; it is excluded from diagnostic ZIPs and redacted from logs. This is not per-person authentication or DRM: anyone with a code/decrypted Drive link can share it. Revoking an already leaked Drive link requires changing its Drive permission/file, not merely encrypting the same link again.
+
+## Texture quality variants
+
+The base signed collection remains Higher so launcher0.1.1 stays compatible. New
+launchers compose the separately signed `channel/textures-medium.json` after
+signature verification. Its `textureVariant` metadata binds to the exact Higher
+archive pin. Only the HD texture DLL/data may be replaced. The engine records the
+installed quality and performs removals, rollback and cancellation transactionally.
+Modified variant-only texture files block switching before commit.
+
+New profiles start at Medium. Existing HD profiles retain Higher until the player
+chooses otherwise; the selected texture quality is a personal launcher setting.
+Neither the server nor gameplay configuration depends on this setting.
+
+After downloading the official Medium2.0 archive, verify the baseline signature
+with the CLI, then run `python publisher/build_texture_variant.py --archive <archive>
+--baseline channel/stable.json --output <fresh-output-directory>`. The builder
+inventories and hashes an isolated extraction, never an installed profile. Sign
+its manifest.payload.json with the existing release key; publish the signed output
+as textures-medium.json only after verifying composition against the real baseline.
+Keep Drive upload receipts private. The company source publisher accepts the two
+baseline archive sources and the optional pinned Medium source, using the same code.

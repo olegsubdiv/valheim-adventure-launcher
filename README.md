@@ -14,7 +14,9 @@ Existing r2modman profiles can be selected directly, including a profile moved t
 - **Collect diagnostics** creates a small ZIP to send to the maintainer.
 - **Play installed** starts the current local collection without a network update.
 
-Enter the private **Company access code** supplied by the maintainer to enable automatic Willybach HD Higher and Badger downloads from Google Drive. The app remembers it on this PC. Without a code, the exact official Nexus archives can still be imported manually. Matching installed files are reused. Everyone uses the same HD variant.
+Choose **Texture quality: Medium or Higher** before installing or updating. Medium is the starting choice for new installations on 12 GB graphics cards; actual memory use also depends on the game settings and scene. Existing Higher installations keep Higher until you choose a different variant. Texture quality is a personal graphics choice and does not change the shared gameplay or server. Apply a changed choice with **Install / update** or **Update and play**; **Play installed** keeps the current files.
+
+Enter the private **Company access code** supplied by the maintainer to enable automatic Willybach HD and Badger downloads from Google Drive. The app remembers it on this PC. Without a code, the exact official Nexus archives can still be imported manually. Matching installed files are reused.
 
 The public repository contains only an AES-256-GCM encrypted source list. The random 256-bit code stays outside Git. Decrypted sources also carry the maintainer signature and must match the public collection's exact archive hashes. This is shared-code access, not a Google account login: anyone who receives the code or decrypted links can download the archives.
 

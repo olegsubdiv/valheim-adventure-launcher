@@ -243,8 +243,23 @@ public sealed class PackEngine(HttpClient http, EngineOptions? options = null, I
                 var target = EngineStorage.InProfile(profile, path);
                 if (!File.Exists(target)) continue;
                 if (await EngineStorage.MatchesAsync(target, prior.Size, prior.ActualHash, ct)) removed.Add(path);
+                else if (manifest.TextureQuality != null && state.TextureQuality != null &&
+                    manifest.TextureQuality != state.TextureQuality && TextureVariants.IsTexturePath(path))
+                    throw new IOException($"A texture file from the previous quality was modified: {path}. Restore or move it before switching texture quality.");
                 else preserved.Add(path);
             }
+        }
+        // Older installations can predate launcher ownership metadata. Only exact pins from
+        // the verified Higher baseline may be adopted for removal during a Medium switch.
+        foreach (var legacy in manifest.LegacyTextureFiles)
+        {
+            var path = ManifestValidation.Normalize(legacy.Path);
+            if (destinations.Contains(path)) continue;
+            var target = EngineStorage.InProfile(profile, path);
+            if (!File.Exists(target)) continue;
+            if (!await EngineStorage.MatchesAsync(target, legacy.Size, legacy.Sha256, ct))
+                throw new IOException($"A Higher-only texture file was modified: {path}. Restore or move it before switching to Medium.");
+            if (state?.Files.ContainsKey(path) != true) removed.Add(path);
         }
         var changedSet = new HashSet<string>(changed, StringComparer.OrdinalIgnoreCase);
         var artifactIds = manifest.Files.Where(f => changedSet.Contains(ManifestValidation.Normalize(f.Path)))
@@ -269,7 +284,7 @@ public sealed class PackEngine(HttpClient http, EngineOptions? options = null, I
     private static async Task<InstalledState> CaptureStateAsync(PackManifest manifest, string profile,
         Dictionary<string, InstalledFile> observed, CancellationToken ct)
     {
-        var state = new InstalledState { PackId = manifest.PackId, Version = manifest.Version };
+        var state = new InstalledState { PackId = manifest.PackId, Version = manifest.Version, TextureQuality = manifest.TextureQuality };
         foreach (var file in manifest.Files)
         {
             var path = ManifestValidation.Normalize(file.Path);

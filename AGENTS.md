@@ -21,3 +21,11 @@ ECDSA P-256/SHA256 DER; подписываются точные UTF-8 bytes payl
 Никогда не коммитить plaintext URLs, company-code.txt или upload receipts; только
 AES-GCM ciphertext. Расшифрованные источники требуют подписи и совпадающих pins.
 Код доступа не равен Google-авторизации; без него ручной Nexus import остаётся.
+
+22октября пользователь одобрил выбор Medium/Higher в launcher. Это заменяет
+прежнее требование единственного Higher для всех: моды/баланс одинаковы, качество
+текстур — личное. Новая установка по умолчанию Medium, существующийHigher
+сохранять. Без автоматической смены по GPU. Medium — отдельный подписанный
+manifest, scope только HDplugin/data, exact Higher pin. DriveURL только вcipher,
+прежний общий код сохранить. Перед публикацией использовать actualMediumreceipt;
+игру/миры/сервер/живойHigher не менять ради теста.

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AdventureLauncher.Core;
 
@@ -13,6 +14,16 @@ public sealed class PackManifest
     public DateTimeOffset PublishedAt { get; set; } = DateTimeOffset.UtcNow;
     public List<PackArtifact> Artifacts { get; set; } = [];
     public List<PackFile> Files { get; set; } = [];
+    public TextureVariantInfo? TextureVariant { get; set; }
+    public string? TextureQuality { get; set; }
+    // Composition derives these pins from the separately verified baseline, never a remote cleanup list.
+    [JsonIgnore] internal List<PackFile> LegacyTextureFiles { get; set; } = [];
+}
+public sealed class TextureVariantInfo
+{
+    public string Id { get; set; } = "";
+    public string BaseArtifactId { get; set; } = "";
+    public string BaseArtifactSha256 { get; set; } = "";
 }
 public sealed class PackArtifact
 {

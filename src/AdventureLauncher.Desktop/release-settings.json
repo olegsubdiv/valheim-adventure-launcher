@@ -2,5 +2,6 @@
   "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERqe2SAB4xxAatKZehp8wL/aErLZM\ntl6HIB4O8z0UFstxb7X1jnEmOwNC2QPSr9COX3kLyVWLt20tbCf6coS96Q==\n-----END PUBLIC KEY-----",
   "feedUrl": "https://raw.githubusercontent.com/olegsubdiv/valheim-adventure-launcher/main/channel/stable.json",
   "repositoryUrl": "https://github.com/olegsubdiv/valheim-adventure-launcher",
-  "companySourcesUrl": "https://raw.githubusercontent.com/olegsubdiv/valheim-adventure-launcher/main/channel/company-sources.enc.json"
+  "companySourcesUrl": "https://raw.githubusercontent.com/olegsubdiv/valheim-adventure-launcher/main/channel/company-sources.enc.json",
+  "textureVariantUrl": "https://raw.githubusercontent.com/olegsubdiv/valheim-adventure-launcher/main/channel/textures-medium.json"
 }

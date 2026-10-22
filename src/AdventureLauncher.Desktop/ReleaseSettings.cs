@@ -7,6 +7,7 @@ internal sealed class ReleaseSettings
 {
     public string FeedUrl { get; set; } = "";
     public string CompanySourcesUrl { get; set; } = "";
+    public string TextureVariantUrl { get; set; } = "";
     public string PublicKeyPem { get; set; } = "";
     public string RepositoryUrl { get; set; } = "";
 
@@ -21,6 +22,8 @@ internal sealed class ReleaseSettings
             throw new InvalidDataException("The bundled launcher repository must be a public GitHub HTTPS URL.");
         if (!Uri.TryCreate(settings.CompanySourcesUrl, UriKind.Absolute, out var company) || company.Scheme != Uri.UriSchemeHttps)
             throw new InvalidDataException("The bundled company source channel must use HTTPS.");
+        if (!Uri.TryCreate(settings.TextureVariantUrl, UriKind.Absolute, out var textures) || textures.Scheme != Uri.UriSchemeHttps)
+            throw new InvalidDataException("The bundled texture variant channel must use HTTPS.");
         using var key = System.Security.Cryptography.ECDsa.Create();
         key.ImportFromPem(settings.PublicKeyPem);
         if (key.KeySize != 256) throw new InvalidDataException("The bundled release key must be P-256.");
