@@ -32,6 +32,16 @@ using var cancel = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancel.Cancel(); };
 try
 {
+    if (command == "check-textures")
+    {
+        var key = File.ReadAllText(Required("key"));
+        var baseline = ManifestSigning.Verify(File.ReadAllText(Required("base-manifest")), key);
+        var variant = ManifestSigning.Verify(File.ReadAllText(Required("manifest")), key);
+        var composed = TextureVariants.Compose(baseline, TextureVariants.Medium, variant);
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = true, quality = composed.TextureQuality,
+            version = composed.Version, files = composed.Files.Count, artifacts = composed.Artifacts.Count }, PackJson.Options));
+        return 0;
+    }
     if (command == "company-code")
     {
         var path = Path.GetFullPath(Required("out"));
