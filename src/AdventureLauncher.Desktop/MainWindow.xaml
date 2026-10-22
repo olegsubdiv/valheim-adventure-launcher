@@ -8,9 +8,10 @@
         <TextBlock Text="Your next expedition starts here." FontSize="28" FontWeight="SemiBold" Margin="0,8,0,7"/>
         <TextBlock Text="Install once. Keep the whole collection in sync." Foreground="{StaticResource MutedBrush}"/>
       </StackPanel>
-      <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+      <StackPanel Grid.Column="1" HorizontalAlignment="Right" Width="230" Margin="16,0,0,0">
         <TextBlock x:Name="AppVersionText" HorizontalAlignment="Right" Foreground="{StaticResource MutedBrush}" FontSize="12"/>
-        <Button x:Name="LauncherUpdateButton" Content="Update launcher" Click="LauncherUpdate_Click" Visibility="Collapsed" Margin="0,10,0,0"/>
+        <Button x:Name="LauncherUpdateButton" Content="Update launcher" Click="LauncherUpdate_Click" Margin="0,10,0,0"/>
+        <TextBlock x:Name="LauncherUpdateStatus" Text="Checks automatically when opened" FontSize="11" Foreground="{StaticResource MutedBrush}" TextAlignment="Right" Margin="0,6,0,0"/>
       </StackPanel>
     </Grid>
     <Border Grid.Row="1" Background="{StaticResource CardBrush}" CornerRadius="9" Padding="20" Margin="0,23,0,18">
@@ -34,7 +35,7 @@
           <Grid.ColumnDefinitions><ColumnDefinition Width="185"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
           <StackPanel>
             <TextBlock Text="Texture quality" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
-            <ComboBox x:Name="TextureQualityBox" ToolTip="Apply your texture choice with Install / update or Update and play while Valheim is closed. Play installed keeps the current files.">
+            <ComboBox x:Name="TextureQualityBox" ToolTip="Apply your texture choice with Install / update or Update and play while Valheim is closed. Play keeps the current files.">
               <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="#15202C"/></DataTemplate></ComboBox.ItemTemplate>
             </ComboBox>
           </StackPanel>
@@ -44,7 +45,7 @@
           </StackPanel>
         </Grid>
         <TextBlock Text="Medium: starting choice for 12 GB cards; memory use varies. Higher: more detail." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0"/>
-        <TextBlock Text="Apply with Install / update while Valheim is closed. Play installed keeps the current files." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"/>
+        <TextBlock Text="Apply with Install / update while Valheim is closed. Play keeps the current files." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"/>
         <TextBlock Text="The code unlocks automatic HD and shader downloads. Without it, you can import original archives manually." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"/>
         <Expander Header="Download storage" Margin="0,13,0,0">
           <StackPanel Margin="0,9,0,0">
@@ -74,18 +75,17 @@
     </Border>
     <StackPanel Grid.Row="3" Margin="0,18,0,0">
       <Grid x:Name="ActionPanel">
-        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-        <Button x:Name="VerifyButton" Content="Verify / repair" Click="Verify_Click"/>
-        <Button Grid.Column="1" Content="Restore previous version" Click="Rollback_Click" Margin="8,0,0,0"/>
-        <Button Grid.Column="3" Content="Install / update" Click="Update_Click" Margin="8,0,0,0"/>
-        <Button Grid.Column="4" Content="Update and play" Click="UpdatePlay_Click" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0"/>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <Button Grid.Column="1" Content="Install / update" Click="Update_Click"/>
+        <Button Grid.Column="2" Content="Update and play" Click="UpdatePlay_Click" Margin="8,0,0,0"/>
+        <Button x:Name="PlayInstalledButton" Grid.Column="3" Content="Play" Click="Play_Click" Style="{StaticResource PrimaryButton}" MinWidth="130" Margin="8,0,0,0" ToolTip="Start the installed modpack through Steam without downloading updates."/>
       </Grid>
-      <Grid Margin="0,12,0,0">
-        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-        <Button x:Name="PlayInstalledButton" Content="Play installed" Click="Play_Click" Padding="0,4" Background="Transparent" Foreground="{StaticResource MutedBrush}"/>
-        <Button x:Name="DiagnosticsButton" Grid.Column="1" Content="Collect diagnostics" Click="Diagnostics_Click" Padding="12,4" Background="Transparent" Foreground="{StaticResource MutedBrush}"/>
-        <Button Grid.Column="3" Content="Open modpack folder" Click="OpenProfile_Click" Padding="0,4" Background="Transparent" Foreground="{StaticResource MutedBrush}"/>
-      </Grid>
+      <WrapPanel x:Name="MaintenancePanel" Margin="0,12,0,0">
+        <Button x:Name="VerifyButton" Content="Verify / repair" Click="Verify_Click" Padding="0,4" Background="Transparent" Foreground="{StaticResource MutedBrush}"/>
+        <Button Content="Restore previous version" Click="Rollback_Click" Margin="16,0,0,0" Padding="0,4" Background="Transparent" Foreground="{StaticResource MutedBrush}"/>
+        <Button x:Name="DiagnosticsButton" Content="Collect diagnostics" Click="Diagnostics_Click" Margin="16,0,0,0" Padding="0,4" Background="Transparent" Foreground="{StaticResource MutedBrush}"/>
+        <Button Content="Open modpack folder" Click="OpenProfile_Click" Margin="16,0,0,0" Padding="0,4" Background="Transparent" Foreground="{StaticResource MutedBrush}"/>
+      </WrapPanel>
     </StackPanel>
   </Grid>
 </Window>

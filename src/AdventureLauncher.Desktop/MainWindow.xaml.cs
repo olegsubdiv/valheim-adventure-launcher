@@ -17,6 +17,8 @@ public partial class MainWindow : Window
     private readonly LauncherUpdates _updates;
     private CancellationTokenSource? _operation;
     private bool _closing;
+    private bool _checkingLauncherUpdate;
+    private bool _launcherUpdating;
     private bool _closeAfterOperation;
     private readonly string? _selfTestData;
     private bool _cacheExplicitlyChosen;
@@ -100,9 +102,9 @@ public partial class MainWindow : Window
 
     private async Task RunAsync(string title, Func<LauncherSettings, CancellationToken, Task> action)
     {
-        if (_operation is not null) return;
+        if (_operation is not null || _launcherUpdating) return;
         _operation = new CancellationTokenSource();
-        SettingsPanel.IsEnabled = ActionPanel.IsEnabled = PlayInstalledButton.IsEnabled = DiagnosticsButton.IsEnabled = LauncherUpdateButton.IsEnabled = false;
+        RefreshActionAvailability();
         CancelButton.Visibility = OperationProgress.Visibility = Visibility.Visible;
         OperationProgress.IsIndeterminate = true;
         StatusTitle.Text = title;
@@ -124,7 +126,7 @@ public partial class MainWindow : Window
         {
             _operation.Dispose();
             _operation = null;
-            SettingsPanel.IsEnabled = ActionPanel.IsEnabled = PlayInstalledButton.IsEnabled = DiagnosticsButton.IsEnabled = LauncherUpdateButton.IsEnabled = true;
+            RefreshActionAvailability();
             CancelButton.Visibility = OperationProgress.Visibility = Visibility.Collapsed;
             if (_closeAfterOperation) Close();
         }
@@ -271,17 +273,76 @@ public partial class MainWindow : Window
         return selected;
     }
 
+    private void RefreshActionAvailability()
+    {
+        var ready = _operation is null && !_launcherUpdating;
+        SettingsPanel.IsEnabled = ActionPanel.IsEnabled = MaintenancePanel.IsEnabled = ready;
+        LauncherUpdateButton.IsEnabled = ready && !_checkingLauncherUpdate;
+    }
+
     private async Task CheckLauncherUpdateAsync()
     {
-        try { if (await _updates.CheckAsync()) LauncherUpdateButton.Visibility = Visibility.Visible; }
-        catch (Exception ex) { AppendLog("Launcher update check unavailable: " + ex.Message); }
+        if (_checkingLauncherUpdate || _closing) return;
+        _checkingLauncherUpdate = true;
+        RefreshActionAvailability();
+        LauncherUpdateStatus.Text = "Checking for updates…";
+        try
+        {
+            if (!_updates.IsInstalled)
+            {
+                LauncherUpdateStatus.Text = "Portable build: updates use the installer.";
+                LauncherUpdateButton.Content = "Download launcher";
+                return;
+            }
+            var available = await _updates.CheckAsync();
+            if (_closing) return;
+            LauncherUpdateButton.Content = available ? $"Update to {_updates.AvailableVersion}" : "Update launcher";
+            LauncherUpdateStatus.Text = available ? $"Version {_updates.AvailableVersion} available" : "Launcher is up to date";
+        }
+        catch (Exception ex)
+        {
+            if (_closing) return;
+            LauncherUpdateStatus.Text = "Could not check. Click to retry.";
+            AppendLog("Launcher update check unavailable: " + ex.Message);
+        }
+        finally
+        {
+            _checkingLauncherUpdate = false;
+            RefreshActionAvailability();
+        }
     }
     private async void LauncherUpdate_Click(object sender, RoutedEventArgs e)
     {
-        if (_operation is not null) return;
-        LauncherUpdateButton.IsEnabled = false;
-        try { await _updates.ApplyAsync(); }
-        catch (Exception ex) { MessageBox.Show(this, ex.Message, "Launcher update", MessageBoxButton.OK, MessageBoxImage.Warning); LauncherUpdateButton.IsEnabled = true; }
+        if (_operation is not null || _launcherUpdating || _checkingLauncherUpdate) return;
+        if (!_updates.IsInstalled)
+        {
+            Process.Start(new ProcessStartInfo(_release.RepositoryUrl + "/releases/latest") { UseShellExecute = true });
+            return;
+        }
+        _launcherUpdating = true;
+        RefreshActionAvailability();
+        try
+        {
+            await CheckLauncherUpdateAsync();
+            if (_updates.AvailableVersion is null) return;
+            LauncherUpdateStatus.Text = "Downloading launcher update…";
+            var progress = new Progress<int>(value =>
+            {
+                if (!_closing) LauncherUpdateStatus.Text = $"Downloading launcher update: {value}%";
+            });
+            await _updates.ApplyAsync(value => ((IProgress<int>)progress).Report(value));
+        }
+        catch (Exception ex)
+        {
+            LauncherUpdateStatus.Text = "Update failed. Click to retry.";
+            AppendLog("Launcher update failed: " + ex.Message);
+            MessageBox.Show(this, ex.Message, "Launcher update", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            _launcherUpdating = false;
+            RefreshActionAvailability();
+        }
     }
     protected override void OnClosed(EventArgs e)
     {
@@ -294,6 +355,13 @@ public partial class MainWindow : Window
     }
     protected override void OnClosing(CancelEventArgs e)
     {
+        if (_launcherUpdating)
+        {
+            e.Cancel = true;
+            LauncherUpdateStatus.Text = "Finishing the launcher update. Please wait…";
+            base.OnClosing(e);
+            return;
+        }
         _closing = true;
         if (_operation is not null)
         {
