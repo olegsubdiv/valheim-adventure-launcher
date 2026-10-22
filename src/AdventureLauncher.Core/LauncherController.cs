@@ -17,6 +17,7 @@ public sealed class LauncherSettings
     public string CompanySourcesUrl { get; set; } = "";
     public string CompanyCode { get; set; } = "";
     public string TextureQuality { get; set; } = "";
+    public string GameLanguage { get; set; } = GameLanguages.English;
     public string TextureVariantUrl { get; set; } = "";
     public string PublicKeyPem { get; set; } = "";
     public Dictionary<string, string> ImportedArtifacts { get; set; } = [];
@@ -66,7 +67,7 @@ public sealed class LauncherController : IDisposable
         var safe = new LauncherSettings
         {
             GamePath = settings.GamePath, ProfilePath = settings.ProfilePath, CachePath = settings.CachePath,
-            CompanyCode = settings.CompanyCode, TextureQuality = settings.TextureQuality, ImportedArtifacts = settings.ImportedArtifacts
+            CompanyCode = settings.CompanyCode, TextureQuality = settings.TextureQuality, GameLanguage = GameLanguages.Normalize(settings.GameLanguage), ImportedArtifacts = settings.ImportedArtifacts
         };
         var destination = Path.Combine(dataDirectory, "settings.json");
         var temporary = destination + ".tmp";
@@ -171,6 +172,7 @@ public sealed class LauncherController : IDisposable
                 DateTimeOffset.UtcNow - timestamp.GetDateTimeOffset() < TimeSpan.FromMinutes(3))
                 throw new InvalidOperationException("Steam is already starting Valheim. Wait for the game to open.");
         }
+        GameLanguages.Apply(settings.GameLanguage, dataDirectory);
         var launchId = Guid.NewGuid().ToString("N");
         EngineStorage.AtomicJson(marker, new { startedAt = DateTimeOffset.UtcNow, launchId });
         ProcessStartInfo start;

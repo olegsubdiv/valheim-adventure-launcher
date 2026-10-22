@@ -32,7 +32,7 @@
         </Grid>
         <TextBlock Text="An existing profile is reused, including its HD textures. For a new installation, choose an empty folder on the drive you want." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0"/>
         <Grid Margin="0,13,0,0">
-          <Grid.ColumnDefinitions><ColumnDefinition Width="185"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="185"/><ColumnDefinition Width="165"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
           <StackPanel>
             <TextBlock Text="Texture quality" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
             <ComboBox x:Name="TextureQualityBox" ToolTip="Apply your texture choice with Install / update or Update and play while Valheim is closed. Play keeps the current files.">
@@ -40,12 +40,19 @@
             </ComboBox>
           </StackPanel>
           <StackPanel Grid.Column="1" Margin="16,0,0,0">
+            <TextBlock Text="Game language" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
+            <ComboBox x:Name="GameLanguageBox" ToolTip="Applies when you launch Valheim. Also sets the language for normal Valheim starts on this Windows account.">
+              <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="#15202C"/></DataTemplate></ComboBox.ItemTemplate>
+            </ComboBox>
+          </StackPanel>
+          <StackPanel Grid.Column="2" Margin="16,0,0,0">
             <TextBlock Text="Company access code" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
             <PasswordBox x:Name="CompanyCodeBox" MaxLength="64" Background="#101B27" Foreground="{StaticResource TextBrush}" BorderBrush="#405265" Padding="10,8" ToolTip="Paste the secret code from the maintainer to enable automatic HD and shader downloads. It is saved on this PC."/>
           </StackPanel>
         </Grid>
         <TextBlock Text="Medium: starting choice for 12 GB cards; memory use varies. Higher: more detail." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0"/>
         <TextBlock Text="Apply with Install / update while Valheim is closed. Play keeps the current files." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"/>
+        <TextBlock Text="Game language applies at launch. Mods use their available translations; some text may remain English." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"/>
         <TextBlock Text="The code unlocks automatic HD and shader downloads. Without it, you can import original archives manually." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"/>
         <Expander Header="Download storage" Margin="0,13,0,0">
           <StackPanel Margin="0,9,0,0">

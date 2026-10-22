@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Text.Json;
 using System.Security.Cryptography;
 using AdventureLauncher.Core;
+using Microsoft.Win32;
 
 var fixture = Path.Combine(Path.GetTempPath(), "arpg-client-test-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(fixture);
@@ -18,6 +19,7 @@ try
     var settings = new LauncherSettings { GamePath = game, ProfilePath = profile, CachePath = Path.Combine(fixture, "cache"), FeedUrl = "secret-untrusted-feed", PublicKeyPem = "never-persist-this-key" };
     var code = CompanyAccess.CreateCode();
     settings.CompanyCode = code;
+    settings.GameLanguage = GameLanguages.Russian;
     using var signingKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
     var sourceArtifact = new PackArtifact { Id = "private-hd", Kind = "7z", FileName = "hd.7z", Size = 123, Sha256 = new string('a', 64), Urls = ["https://drive.google.com/uc?export=download&id=fixture123456789"] };
     var sources = new PackManifest { PackId = "adventure-rpg-company-sources", Version = "1", Artifacts = [sourceArtifact] };
@@ -49,6 +51,41 @@ try
     Assert(!saved.Contains("secret-untrusted-feed") && !saved.Contains("never-persist-this-key"), "Trust must not be persisted in user-editable settings.");
     Assert(controller.LoadSettings().CompanyCode == code, "Company code was not remembered.");
     Assert(controller.LoadSettings().ProfilePath == profile, "Settings round trip failed.");
+    Assert(controller.LoadSettings().GameLanguage == GameLanguages.Russian, "Game language was not remembered.");
+    Assert(GameLanguages.Normalize(null) == GameLanguages.English, "Default game language changed.");
+    try { GameLanguages.Normalize("../invalid"); throw new Exception("Invalid game language accepted."); }
+    catch (InvalidDataException) { }
+    if (OperatingSystem.IsWindows())
+    {
+        var testKey = @"Software\ValheimAdventureLauncher.Tests\" + Guid.NewGuid().ToString("N");
+        try
+        {
+            using var key = Registry.CurrentUser.CreateSubKey(testKey, writable: true);
+            key.SetValue("Unrelated", "keep", RegistryValueKind.String);
+            key.SetValue("language_h1730749655", System.Text.Encoding.UTF8.GetBytes("English\0"), RegistryValueKind.Binary);
+            var backup = Path.Combine(data, "test-game-language-backup.json");
+            GameLanguages.ApplyToKey(key, GameLanguages.Russian, backup);
+            var originalBackup = File.ReadAllBytes(backup);
+            using var snapshot = JsonDocument.Parse(originalBackup);
+            Assert(System.Text.Encoding.UTF8.GetString(snapshot.RootElement.GetProperty("data").GetBytesFromBase64()) == "English\0", "Backup did not capture the original language.");
+            Assert(key.GetValueKind("language_h1730749655") == RegistryValueKind.Binary &&
+                System.Text.Encoding.UTF8.GetString((byte[])key.GetValue("language_h1730749655")!) == "Russian\0", "Russian Unity preference not written.");
+            GameLanguages.ApplyToKey(key, GameLanguages.English, backup);
+            Assert(System.Text.Encoding.UTF8.GetString((byte[])key.GetValue("language_h1730749655")!) == "English\0", "English switch failed.");
+            Assert(originalBackup.SequenceEqual(File.ReadAllBytes(backup)), "First language backup overwritten.");
+            Assert((string)key.GetValue("Unrelated")! == "keep", "Other game preference changed.");
+            var blocked = Path.Combine(data, "blocked-language-backup");
+            File.WriteAllText(blocked, "fixture file blocks parent directory");
+            try { GameLanguages.ApplyToKey(key, GameLanguages.Russian, Path.Combine(blocked, "backup.json")); throw new Exception("Backup failure accepted."); }
+            catch (IOException) { }
+            Assert(System.Text.Encoding.UTF8.GetString((byte[])key.GetValue("language_h1730749655")!) == "English\0", "Failed backup changed game language.");
+            key.DeleteValue("language_h1730749655");
+            var absentBackup = Path.Combine(data, "test-absent-language.json");
+            GameLanguages.ApplyToKey(key, GameLanguages.Russian, absentBackup);
+            Assert(JsonDocument.Parse(File.ReadAllText(absentBackup)).RootElement.GetProperty("existed").GetBoolean() == false, "Absent preference backup incorrect.");
+        }
+        finally { Registry.CurrentUser.DeleteSubKeyTree(testKey, throwOnMissingSubKey: false); }
+    }
     settings.CachePath = Path.Combine(profile, "cache");
     try { LauncherController.ValidatePaths(settings); throw new Exception("Nested cache accepted."); }
     catch (InvalidOperationException) { }
@@ -73,7 +110,7 @@ try
         Assert(!desktopRead.ReadToEnd().Contains(code), "Desktop startup diagnostics leaked the company code.");
     using var read = new StreamReader(archive.GetEntry("BepInEx_LogOutput.log")!.Open());
     Assert(!read.ReadToEnd().Contains("supersecret"), "Secret was included in diagnostics.");
-    Console.WriteLine("PASS client: settings trust boundary, path guards, diagnostic redaction and retention. No game was launched.");
+    Console.WriteLine("PASS client: settings trust boundary, game language registry fixture/backup, path guards, diagnostic redaction and retention. No game was launched.");
     return 0;
 }
 finally { if (Directory.Exists(fixture)) Directory.Delete(fixture, true); }

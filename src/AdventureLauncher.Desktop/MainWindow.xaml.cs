@@ -54,6 +54,8 @@ public partial class MainWindow : Window
         ProfilePathBox.Text = _settings.ProfilePath;
         CachePathBox.Text = _settings.CachePath;
         CompanyCodeBox.Password = _settings.CompanyCode;
+        GameLanguageBox.ItemsSource = new[] { "English", "\u0420\u0443\u0441\u0441\u043a\u0438\u0439" };
+        GameLanguageBox.SelectedIndex = string.Equals(_settings.GameLanguage, GameLanguages.Russian, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
         TextureQualityBox.ItemsSource = new[] { "Medium", "Higher" };
         _textureProfile = _settings.ProfilePath;
         SelectTextureQuality(TextureVariants.ResolveTextureQuality(_textureProfile, _settings.TextureQuality));
@@ -71,6 +73,7 @@ public partial class MainWindow : Window
         _settings.CompanyCode = CompanyCodeBox.Password.Trim();
         RefreshTextureChoiceForProfile();
         _settings.TextureQuality = SelectedTextureQuality();
+        _settings.GameLanguage = GameLanguageBox.SelectedIndex == 1 ? GameLanguages.Russian : GameLanguages.English;
         _settings.FeedUrl = _release.FeedUrl;
         _settings.CompanySourcesUrl = _release.CompanySourcesUrl;
         _settings.TextureVariantUrl = _release.TextureVariantUrl;
