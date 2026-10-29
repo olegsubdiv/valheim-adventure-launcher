@@ -1,0 +1,12 @@
+{
+  "operation": "SetConfigEntry",
+  "relativePath": "BepInEx/config/Azumatt.Recycle_N_Reclaim.cfg",
+  "section": "3 - Reclaiming",
+  "key": "PreventZeroResourceYields",
+  "before": "On",
+  "after": "Off",
+  "recyclingRatePreserved": 0.5,
+  "minimumOneResourceRemainsOff": true,
+  "otherRequirementsUnchanged": true,
+  "chosenBehavior": "Allow reclaim even when individual or all materials round down to zero; do not round up."
+}
