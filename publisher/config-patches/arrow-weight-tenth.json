@@ -1,0 +1,113 @@
+{
+  "operation": "AppendWeightOverrides",
+  "relativePath": "BepInEx/config/wubarrk.stackit.cfg",
+  "section": "4 - Weight",
+  "key": "Weight Overrides",
+  "arrows": [
+    {
+      "prefab": "ArrowBloodGold",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowBone_TW",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowBronze",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowCarapace",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowCharred",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowExplosiveLightning_TW",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowExplosivePoison_TW",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowFire",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowFlint",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowFrost",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowIron",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowNeedle",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowObsidian",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowPickaxe_TW",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowPoison",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowSilver",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    },
+    {
+      "prefab": "ArrowWood",
+      "before": "0.1",
+      "after": "0.01",
+      "stackSizePreserved": 1000
+    }
+  ],
+  "previousOverridesUnchanged": true,
+  "otherAmmoIncludingBoltsUnchanged": true,
+  "allOtherSettingsUnchanged": true
+}
