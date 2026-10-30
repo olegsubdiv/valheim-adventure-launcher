@@ -3,10 +3,10 @@
   "relativePath": "BepInEx/config/Azumatt.Recycle_N_Reclaim.cfg",
   "section": "3 - Reclaiming",
   "key": "PreventZeroResourceYields",
-  "before": "On",
-  "after": "Off",
+  "before": "Off",
+  "after": "On",
   "recyclingRatePreserved": 0.5,
   "minimumOneResourceRemainsOff": true,
-  "otherRequirementsUnchanged": true,
-  "chosenBehavior": "Allow reclaim even when individual or all materials round down to zero; do not round up."
+  "chosenBehavior": "Restore the original block when any required recycling material rounds to zero.",
+  "supersedes": "recycling-allow-zero-yields.json"
 }
