@@ -1,0 +1,7 @@
+{
+  "name": "QuietFires",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/olegsubdiv/valheim-adventure-launcher/tree/main/gameplay/QuietFires",
+  "description": "Mutes continuous hearth and brazier fire audio, including BoneAppetit smokeless variants; other fire behavior and sounds remain unchanged.",
+  "dependencies": ["denikson-BepInExPack_Valheim-5.4.2360"]
+}
