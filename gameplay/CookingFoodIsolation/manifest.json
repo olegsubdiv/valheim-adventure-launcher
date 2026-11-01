@@ -1,0 +1,7 @@
+{
+ "name":"CookingFoodIsolation",
+ "version_number":"1.0.0",
+ "website_url":"https://github.com/olegsubdiv/valheim-adventure-launcher/tree/main/gameplay/CookingFoodIsolation",
+ "description":"Prevents Cooking food bonuses from compounding or changing shared item templates; preserves authored food values and skill multipliers.",
+ "dependencies":["denikson-BepInExPack_Valheim-5.4.2360","ValheimModding-Jotunn-2.30.2","Smoothbrain-Cooking-1.2.5"]
+}
