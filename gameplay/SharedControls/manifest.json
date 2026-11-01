@@ -1,0 +1,7 @@
+{
+  "name": "SharedControls",
+  "version_number": "1.0.0",
+  "website_url": "",
+  "description": "Client-only one-time Adventure RPG keyboard defaults with profile-scoped native conflict handling.",
+  "dependencies": ["denikson-BepInExPack_Valheim-5.4.2360", "RandyKnapp-EpicLoot-0.15.5"]
+}

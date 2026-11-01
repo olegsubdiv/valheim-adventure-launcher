@@ -124,3 +124,16 @@ its manifest.payload.json with the existing release key; publish the signed outp
 as textures-medium.json only after verifying composition against the real baseline.
 Keep Drive upload receipts private. The company source publisher accepts the two
 baseline archive sources and the optional pinned Medium source, using the same code.
+## Shared client controls
+
+ARPG-SharedControls is a client-only package that includes the MIT-0 AutoAttack0.1.0
+binary with the reviewed Jotunn ordering compatibility patch. Its source provenance
+and license are shipped alongside the preserved upstream README/manifest.
+The source patch is in gameplay/AutoAttackCompatibility.
+
+Common controls are F auto-attack, G new EpicLoot set ability, Z spirit binding,
+and U for the previous EpicLoot ability slot1. A one-time per-profile migration
+applies these to existing players; later personal rebinding remains supported.
+AutoAttack preferences are preserved by the launcher configuration policy.
+Never ship BepInEx/config/arpg.sharedcontrols.cfg: it contains the local migration
+marker. The publisher rejects that path to prevent fresh clients skipping setup.

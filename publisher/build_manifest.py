@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 RESERVED = {"CON", "PRN", "AUX", "NUL"} | {f"{p}{i}" for p in ("COM", "LPT") for i in range(1, 10)}
 TEXT_EXTENSIONS = {".cfg", ".json", ".yml", ".yaml", ".txt", ".ini", ".xml", ".csv", ".md"}
-PERSONAL_CONFIGS = {"advize.planteasily.cfg", "badgersshadingoverhaul.cfg", "bepinex.cfg", "com.maxsch.valheim.vnei.cfg", "ru.ivest.valheimvisuals.cfg", "shudnal.mylittleui.cfg"}
+PERSONAL_CONFIGS = {"advize.planteasily.cfg", "orax.autoattack.cfg", "badgersshadingoverhaul.cfg", "bepinex.cfg", "com.maxsch.valheim.vnei.cfg", "ru.ivest.valheimvisuals.cfg", "shudnal.mylittleui.cfg"}
 PERSONAL_KEY = re.compile(r"(?:hot.?key|shortcut|keybind|keyboard|toggle.?key|font.?size|ui.?scale|hud.?scale|window.?position|window.?size|volume)", re.I)
 SECRET_FIELD = re.compile(r'(?i)(?:"?(?:access_token|refresh_token|client_secret|authorization|discordwebhook|webhookurl|password)"?\s*[:=]\s*)(.+)')
 HOST_PATH = re.compile(r"(?i)(?:[a-z]:[\\/]+Users[\\/]+|[a-z]:[\\/]+Work Projects[\\/]+|[a-z]:[\\/]+SteamLibrary[\\/]+)")
@@ -79,6 +79,8 @@ def assert_publishable_text(data: bytes, path: str) -> str:
     return text
 
 def config_policy(path: str, text: str) -> tuple[str, list[str]]:
+    if path.casefold() == "bepinex/config/arpg.sharedcontrols.cfg":
+        raise ValueError("The per-profile SharedControls migration marker must never be distributed")
     # EpicLoot rebuilds these from its embedded data, patches and discovered mod
     # items. Treat them as generated config: migrate on signed source changes,
     # retain runtime output between launches with the same signed source pin.
