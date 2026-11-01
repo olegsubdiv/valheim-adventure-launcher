@@ -1,4 +1,4 @@
-# Guard Balance 1.0.0
+# Guard Balance 1.0.1
 
 Player block armor **x1.7** for all shields (including tower shields) and other
 equipment whose existing parry bonus is greater than 1. Parry bonus **x1.2**:
@@ -23,7 +23,12 @@ Ordinary and EpicLoot item tooltips display the adjusted block armor and parry
 bonus, including the skill-adjusted block value. Block force, attack damage and
 attack speed are unchanged. UI adjustments do not feed back into combat.
 
-Requires reviewed EpicLoot 0.14.13. Install on server and all clients (Jotunn exact
+Version 1.0.1 uses EpicLoot 0.15.5's numeric `TooltipGatherer` getters in place
+of its removed `MagicTooltip` API. It scales the native block/parry result once
+before the new tooltip cache and renderer, preserving the new upstream modifiers
+and display behavior. The secondary skill value uses its existing native hook.
+
+Requires reviewed EpicLoot 0.15.5. Install on server and all clients (Jotunn exact
 patch compatibility). No new config, RPC, polling or full damage interception.
 Removing the plugin restores native calculations on restart without save edits.
 

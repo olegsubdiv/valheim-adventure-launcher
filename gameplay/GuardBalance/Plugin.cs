@@ -7,8 +7,8 @@ using Jotunn.Utils;
 
 namespace AdventureRpg.GuardBalance;
 
-[BepInPlugin(Guid, "Adventure RPG - Guard Balance", "1.0.0")]
-[BepInDependency("randyknapp.mods.epicloot", "0.14.13")]
+[BepInPlugin(Guid, "Adventure RPG - Guard Balance", "1.0.1")]
+[BepInDependency("randyknapp.mods.epicloot", "0.15.5")]
 [BepInDependency("com.jotunn.jotunn")]
 [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Patch)]
 public sealed class Plugin : BaseUnityPlugin
@@ -17,8 +17,8 @@ public sealed class Plugin : BaseUnityPlugin
     private Harmony? harmony;
     private void Awake()
     {
-        if (Chainloader.PluginInfos["randyknapp.mods.epicloot"].Metadata.Version != new System.Version(0, 14, 13))
-            throw new NotSupportedException("Guard Balance 1.0.0 requires reviewed EpicLoot 0.14.13.");
+        if (Chainloader.PluginInfos["randyknapp.mods.epicloot"].Metadata.Version != new System.Version(0, 15, 5))
+            throw new NotSupportedException("Guard Balance 1.0.1 requires reviewed EpicLoot 0.15.5.");
         harmony = new Harmony(Guid);
         try { harmony.PatchAll(typeof(Plugin).Assembly); }
         catch { harmony.UnpatchSelf(); throw; }
@@ -47,20 +47,30 @@ public sealed class Plugin : BaseUnityPlugin
         internal static void Postfix(ItemDrop.ItemData __instance, ref float __result) => __result = GuardPolicy.BlockPower(__instance, __result);
     }
 
-    [HarmonyPatch(typeof(MagicTooltip), nameof(MagicTooltip.GetBlockPowerValue))]
+    private static MethodBase TooltipTarget(string method) =>
+        AccessTools.Method(AccessTools.TypeByName("EpicLoot.TooltipGatherer")
+            ?? throw new MissingMemberException("Pinned EpicLoot tooltip gatherer missing."), method)
+        ?? throw new MissingMethodException("Pinned EpicLoot numeric tooltip getter missing.");
+
+    // EpicLoot 0.15.5 gathers numeric stats before caching/rendering them. Wrapping
+    // these two getters preserves its modifiers, formatting and cache behavior.
+    // The skill-adjusted secondary value retains its separate native hook above.
+    [HarmonyPatch]
     private static class EnchantedBlockTooltip
     {
+        private static MethodBase TargetMethod() => TooltipTarget("GetBlockPowerValue");
         [HarmonyPriority(Priority.Last)]
-        internal static void Postfix(ItemDrop.ItemData item, ref float __result) => __result = GuardPolicy.BlockPower(item, __result);
+        internal static void Postfix(ItemDrop.ItemData ___item, ref float __result) => __result = GuardPolicy.BlockPower(___item, __result);
     }
 
-    [HarmonyPatch(typeof(MagicTooltip), nameof(MagicTooltip.GetParryBonusValue))]
+    [HarmonyPatch]
     private static class EnchantedParryTooltip
     {
+        private static MethodBase TargetMethod() => TooltipTarget("GetParryBonusValue");
         [HarmonyPriority(Priority.Last)]
-        internal static void Postfix(ItemDrop.ItemData item, ref float __result)
+        internal static void Postfix(ItemDrop.ItemData ___item, ref float __result)
         {
-            if (item.m_shared.m_timedBlockBonus > 1f) __result *= GuardPolicy.ParryMultiplier;
+            if (___item.m_shared.m_timedBlockBonus > 1f) __result *= GuardPolicy.ParryMultiplier;
         }
     }
 }

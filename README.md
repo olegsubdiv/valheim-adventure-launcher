@@ -30,6 +30,11 @@ The application and collection have separate versions. [Velopack](https://velopa
 
 Versions and SHA256 hashes are pinned. Catalog packages come from Thunderstore/Hexium. The repository publishes our configuration snapshot and source metadata. Permitted raw files may also be hosted on Google Drive.
 
+Launcher 0.1.6 supports the reviewed BepInExPack 5.4.2351 to 5.4.2360 loader
+upgrade. Only exact known old/new loader pins are accepted. Original loader files
+are backed up under the game's `.arpg-bootstrap-backups`; an existing game
+`doorstop_config.ini` is preserved. Unknown loaders still require manual review.
+
 Downloads are staged and verified before commit. Only changed files are backed up. A transaction journal recovers interrupted changes. Removed managed files are deleted only if they still match their recorded installed contents. Personal keys in the configured settings policy survive updates.
 
 Logs rotate at approximately 256 KiB, keeping three files; diagnostics retain three bounded ZIPs. Downloaded archives are cached separately. The launcher keeps game saves and server worlds outside its update targets.

@@ -1,74 +1,16 @@
 {
-  "Priority": 900,
-  "TargetFile": "loottables",
-  "Author": "Adventure RPG rare Mythic",
-  "RequireAll": true,
-  "Patches": [
-    {
-      "Path": "$.LootTables[?(@.Object == 'Tier4Mob')].LeveledLoot[?(@.Level == 5)].Loot[*].Rarity",
-      "Action": "Overwrite",
-      "Value": [
-        0,
-        0,
-        80,
-        19.875,
-        0.125
-      ]
-    },
-    {
-      "Path": "$.LootTables[?(@.Object == 'Tier4Mob')].LeveledLoot[?(@.Level == 6)].Loot[*].Rarity",
-      "Action": "Overwrite",
-      "Value": [
-        0,
-        0,
-        75,
-        24.75,
-        0.25
-      ]
-    },
-    {
-      "Path": "$.LootTables[?(@.Object == 'Tier5Mob')].LeveledLoot[?(@.Level == 5)].Loot[*].Rarity",
-      "Action": "Overwrite",
-      "Value": [
-        0,
-        0,
-        80,
-        19.875,
-        0.125
-      ]
-    },
-    {
-      "Path": "$.LootTables[?(@.Object == 'Tier5Mob')].LeveledLoot[?(@.Level == 6)].Loot[*].Rarity",
-      "Action": "Overwrite",
-      "Value": [
-        0,
-        0,
-        75,
-        24.75,
-        0.25
-      ]
-    },
-    {
-      "Path": "$.LootTables[?(@.Object == 'Tier6Mob')].LeveledLoot[?(@.Level == 5)].Loot[*].Rarity",
-      "Action": "Overwrite",
-      "Value": [
-        0,
-        0,
-        70,
-        29.875,
-        0.125
-      ]
-    },
-    {
-      "Path": "$.LootTables[?(@.Object == 'Tier6Mob')].LeveledLoot[?(@.Level == 6)].Loot[*].Rarity",
-      "Action": "Overwrite",
-      "Value": [
-        0,
-        0,
-        65,
-        34.75,
-        0.25
-      ]
-    }
-  ]
+  "epicLootVersion": "0.15.5",
+  "operation": "Append native-effective Loot-only level5/6 anchors",
+  "tables": [
+    "Tier4Mob",
+    "Tier5Mob",
+    "Tier6Mob"
+  ],
+  "mythicPercentAt4Stars": 0.125,
+  "mythicPercentAt5Stars": 0.25,
+  "rarityTransferFrom": "Legendary",
+  "nativeDropScalingAndOtherTablesUnchanged": true,
+  "sourceFile": "BepInEx/config/EpicLoot/patches/AdventureRPG/AdventureRPG-loot.json",
+  "recordOnlyNotAnAdditionalInstalledPatch": true,
+  "comparison": "epic-data/mythic-anchor-comparison.json"
 }

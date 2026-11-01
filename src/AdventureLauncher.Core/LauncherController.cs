@@ -262,28 +262,11 @@ public sealed class LauncherController : IDisposable
     }
     private static void ValidateBootstrap(PackManifest manifest, string game)
     {
-        foreach (var file in manifest.Files.Where(f => f.Path.StartsWith("bootstrap/", StringComparison.OrdinalIgnoreCase)))
-        {
-            var name = file.Path["bootstrap/".Length..];
-            if (name != Path.GetFileName(name) || name is not ("winhttp.dll" or "doorstop_config.ini" or ".doorstop_version"))
-                throw new InvalidOperationException("Unsupported loader bootstrap file.");
-            var target = Path.Combine(game, name);
-            if (name == "doorstop_config.ini" || !File.Exists(target)) continue;
-            using var stream = File.OpenRead(target);
-            var hash = Convert.ToHexString(SHA256.HashData(stream));
-            if (!hash.Equals(file.Sha256, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("A different mod loader exists in the game folder (" + name + "). Nothing was changed.");
-        }
+        BootstrapInstaller.Validate(manifest, game);
     }
     private static void EnsureBootstrap(PackManifest manifest, LauncherSettings settings)
     {
-        ValidateBootstrap(manifest, settings.GamePath);
-        foreach (var file in manifest.Files.Where(f => f.Path.StartsWith("bootstrap/", StringComparison.OrdinalIgnoreCase)))
-        {
-            var name = Path.GetFileName(file.Path);
-            var target = Path.Combine(settings.GamePath, name);
-            if (!File.Exists(target)) File.Copy(Path.Combine(settings.ProfilePath, file.Path), target, false);
-        }
+        BootstrapInstaller.Ensure(manifest, settings);
     }
     public void InstallShortcuts()
     {

@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 RESERVED = {"CON", "PRN", "AUX", "NUL"} | {f"{p}{i}" for p in ("COM", "LPT") for i in range(1, 10)}
 TEXT_EXTENSIONS = {".cfg", ".json", ".yml", ".yaml", ".txt", ".ini", ".xml", ".csv", ".md"}
-PERSONAL_CONFIGS = {"badgersshadingoverhaul.cfg", "bepinex.cfg", "com.maxsch.valheim.vnei.cfg", "ru.ivest.valheimvisuals.cfg", "shudnal.mylittleui.cfg"}
+PERSONAL_CONFIGS = {"advize.planteasily.cfg", "badgersshadingoverhaul.cfg", "bepinex.cfg", "com.maxsch.valheim.vnei.cfg", "ru.ivest.valheimvisuals.cfg", "shudnal.mylittleui.cfg"}
 PERSONAL_KEY = re.compile(r"(?:hot.?key|shortcut|keybind|keyboard|toggle.?key|font.?size|ui.?scale|hud.?scale|window.?position|window.?size|volume)", re.I)
 SECRET_FIELD = re.compile(r'(?i)(?:"?(?:access_token|refresh_token|client_secret|authorization|discordwebhook|webhookurl|password)"?\s*[:=]\s*)(.+)')
 HOST_PATH = re.compile(r"(?i)(?:[a-z]:[\\/]+Users[\\/]+|[a-z]:[\\/]+Work Projects[\\/]+|[a-z]:[\\/]+SteamLibrary[\\/]+)")
@@ -79,6 +79,11 @@ def assert_publishable_text(data: bytes, path: str) -> str:
     return text
 
 def config_policy(path: str, text: str) -> tuple[str, list[str]]:
+    # EpicLoot rebuilds these from its embedded data, patches and discovered mod
+    # items. Treat them as generated config: migrate on signed source changes,
+    # retain runtime output between launches with the same signed source pin.
+    if (path.startswith("BepInEx/config/EpicLoot/baseconfig/") and path.endswith(".json")) or path == "BepInEx/config/EpicLoot/configstate.json":
+        return "config", []
     if pathlib.PurePosixPath(path).suffix.lower() not in (".cfg", ".ini"):
         return "managed", []
     section, setting_type = "", ""

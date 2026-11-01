@@ -22,6 +22,7 @@ namespace HarmonyLib {
  }
  public static class AccessTools {
  const BindingFlags F=BindingFlags.Static|BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
+ public static Type? TypeByName(string name)=>typeof(AccessTools).Assembly.GetType(name);
  public static FieldInfo Field(Type t,string n)=>t.GetField(n,F)!;
  public static MethodInfo Method(Type t,string n,Type[]? args=null)=>args==null?t.GetMethod(n,F)!:t.GetMethod(n,F,null,args,null)!;
  }
@@ -42,4 +43,4 @@ public class ItemDrop {
   public float GetBlockPowerTooltip(int quality)=>GetBaseBlockPower(quality)*1.2f;
  }
 }
-namespace EpicLoot {public class MagicTooltip {public static float GetBlockPowerValue(ItemDrop.ItemData item)=>0;public static float GetParryBonusValue(ItemDrop.ItemData item)=>0;}}
+namespace EpicLoot {internal class TooltipGatherer {private ItemDrop.ItemData item=new();private float GetBlockPowerValue(out bool hasModifiers){hasModifiers=false;return item.GetBaseBlockPower(1);}private float GetParryBonusValue(out bool hasModifiers){hasModifiers=false;return item.m_shared.m_timedBlockBonus;}}}

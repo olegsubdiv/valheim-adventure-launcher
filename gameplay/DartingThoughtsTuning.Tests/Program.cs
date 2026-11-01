@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Mono.Cecil;
 using System.Text.Json;
+using System.Security.Cryptography;
 int checks=0;void Check(bool ok,string n){if(!ok)throw new Exception(n);checks++;}
 void Near(float a,float b,string n)=>Check(Math.Abs(a-b)<.0001f,n);
 foreach(float value in new[]{0f,1f,2f,3f,4f,5f,6f,7f,10f,15f,20f,25f,40f,50f,60f,80f,100f,150f,200f,250f,300f}) {
@@ -18,9 +19,10 @@ Plugin.RegisterDisplay();Near((float)EpicLoot.MagicItem.Providers["DartingThough
 EpicLoot.Magic.MagicItemEffects.DartingThoughts.RegisterDisplayValues();
 var post=typeof(Plugin).GetNestedType("DisplayRegistration",BindingFlags.NonPublic)!.GetMethod("Postfix",BindingFlags.Static|BindingFlags.NonPublic)!;post.Invoke(null,null);
 Near((float)EpicLoot.MagicItem.Providers["DartingThoughts"](100)[1],40,"provider restored after upstream registration");Check(ReferenceEquals(unrelated,EpicLoot.MagicItem.Providers["Other"]),"unrelated effect provider unchanged");
-var root=Path.GetFullPath(args[0]);var epicPath=Directory.EnumerateFiles(Path.Combine(root,"management/BakaTrial/runtime/BepInEx/plugins"),"EpicLoot.dll",SearchOption.AllDirectories).Single();
-using var resolver=new DefaultAssemblyResolver();foreach(var p in new[]{Path.GetDirectoryName(epicPath)!,Path.Combine(root,"management/BakaTrial/runtime/BepInEx/core"),Path.Combine(root,"management/BakaTrial/runtime/valheim_server_Data/Managed"),Path.Combine(root,"management/BakaTrial/runtime/BepInEx/plugins/ValheimModding-Jotunn")})resolver.AddSearchDirectory(p);
+var root=Path.GetFullPath(args[0]);var gameRoot=Path.GetFullPath(args[1]);var epicPath=Directory.EnumerateFiles(Path.Combine(gameRoot,"BepInEx/plugins"),"EpicLoot.dll",SearchOption.AllDirectories).Single();
+using var resolver=new DefaultAssemblyResolver();foreach(var p in new[]{Path.GetDirectoryName(epicPath)!,Path.Combine(gameRoot,"BepInEx/core"),Path.Combine(gameRoot,"valheim_server_Data/Managed"),Path.Combine(gameRoot,"BepInEx/plugins/ValheimModding-Jotunn")})resolver.AddSearchDirectory(p);
 using var epic=AssemblyDefinition.ReadAssembly(epicPath,new ReaderParameters{AssemblyResolver=resolver});
+Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(epicPath))).ToLowerInvariant()=="c2b96d1cf7f8df21c7d5a9d238e799ebd4cbceb77972c9065cb58b15fdf59ce3","exact reviewed EpicLoot0.15.5 binary");
 var dtype=epic.MainModule.Types.Single(t=>t.FullName=="EpicLoot.Magic.MagicItemEffects.DartingThoughts");var method=dtype.NestedTypes.Single(t=>t.Name=="ModifyMaxEitr").Methods.Single(m=>m.Name=="Postfix");
 var opmap=typeof(OpCodes).GetFields(BindingFlags.Static|BindingFlags.Public).Select(f=>(OpCode)f.GetValue(null)!).ToDictionary(o=>o.Value);
 var input=method.Body.Instructions.Select(i=>new CodeInstruction(opmap[i.OpCode.Value],i.Operand)).ToList();

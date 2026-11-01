@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System.Text.Json;
+using System.Security.Cryptography;
 using OpCodes=System.Reflection.Emit.OpCodes;
 int checks=0;void Check(bool ok,string n){if(!ok)throw new Exception(n);checks++;}
 void Near(float a,float b,string n)=>Check(Math.Abs(a-b)<.001f,n);
@@ -35,12 +36,28 @@ foreach(string nested in new[]{"SkillAdjustedTooltip","EnchantedBlockTooltip","E
  var item=new ItemDrop.ItemData();object[] args2=[item,100f];method.Invoke(null,args2);
  Near((float)args2[1],nested=="EnchantedParryTooltip"?120f:170f,"UI postfix applies once after original modifiers");
 }
-var root=Path.GetFullPath(args[0]);using var resolver=new DefaultAssemblyResolver();
-foreach(var dir in new[]{"valheim_server_Data/Managed","BepInEx/core","BepInEx/plugins/ValheimModding-Jotunn","BepInEx/plugins/RandyKnapp-EpicLoot"})resolver.AddSearchDirectory(Path.Combine(root,"management/BakaTrial/runtime",dir));
-var epicPath=Directory.EnumerateFiles(Path.Combine(root,"management/BakaTrial/runtime/BepInEx/plugins"),"EpicLoot.dll",SearchOption.AllDirectories).Single();resolver.AddSearchDirectory(Path.GetDirectoryName(epicPath)!);
+var root=Path.GetFullPath(args[0]);var gameRoot=Path.GetFullPath(args[2]);using var resolver=new DefaultAssemblyResolver();
+foreach(var dir in new[]{"valheim_server_Data/Managed","BepInEx/core","BepInEx/plugins/ValheimModding-Jotunn","BepInEx/plugins/RandyKnapp-EpicLoot"})resolver.AddSearchDirectory(Path.Combine(gameRoot,dir));
+var epicPath=Directory.EnumerateFiles(Path.Combine(gameRoot,"BepInEx/plugins"),"EpicLoot.dll",SearchOption.AllDirectories).Single();resolver.AddSearchDirectory(Path.GetDirectoryName(epicPath)!);
+Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(epicPath))).ToLowerInvariant()=="c2b96d1cf7f8df21c7d5a9d238e799ebd4cbceb77972c9065cb58b15fdf59ce3","reviewed EpicLoot0.15.5 binary");
+using var epic=AssemblyDefinition.ReadAssembly(epicPath,new ReaderParameters{AssemblyResolver=resolver});
+Check(!epic.MainModule.Types.Any(t=>t.FullName=="EpicLoot.MagicTooltip"),"obsolete tooltip API absent in new EpicLoot");
+var gatherer=epic.MainModule.Types.Single(t=>t.FullName=="EpicLoot.TooltipGatherer");
+Check(gatherer.Fields.Single(f=>f.Name=="item").FieldType.FullName=="ItemDrop/ItemData","Harmony ___item injection matches new numeric gatherer");
+foreach(var (getter,caller) in new[]{("GetBlockPowerValue","GatherBlockArmor"),("GetParryBonusValue","GatherBlockForceAndParry")})
+{
+ var method=gatherer.Methods.Single(m=>m.Name==getter);
+ Check(!method.IsStatic&&method.ReturnType.FullName=="System.Single"&&method.Parameters.Count==1&&method.Parameters[0].ParameterType.FullName=="System.Boolean&","exact new numeric getter: "+getter);
+ Check(gatherer.Methods.Single(m=>m.Name==caller).Body.Instructions.Any(i=>i.Operand is MethodReference m&&m.FullName==method.FullName),"new UI consumes adjusted numeric getter: "+caller);
+ var nested=getter=="GetBlockPowerValue"?"EnchantedBlockTooltip":"EnchantedParryTooltip";
+ Check(typeof(Plugin).GetNestedType(nested,BindingFlags.NonPublic)!.GetMethod("TargetMethod",BindingFlags.Static|BindingFlags.NonPublic)!.Invoke(null,null) is MethodInfo mi&&mi.Name==getter,"reflected new UI target resolves");
+}
+Check(gatherer.Methods.Single(m=>m.Name=="GatherBlockArmor").Body.Instructions.Count(i=>i.Operand is MethodReference m&&m.Name=="GetBlockPowerTooltip")==1,"secondary skill value uses its existing single scaling hook");
+var cache=epic.MainModule.Types.Single(t=>t.FullName=="EpicLoot.ItemTooltip");
+Check(cache.Methods.Single(m=>m.Name=="GetEntry").Body.Instructions.Count(i=>i.Operand is MethodReference m&&m.DeclaringType.FullName==gatherer.FullName&&m.Name=="Gather")==1,"adjustment is gathered once before native per-frame cache");
 var power=AccessTools.Method(typeof(ItemDrop.ItemData),"GetBlockPower",[typeof(float)]);var basePower=AccessTools.Method(typeof(ItemDrop.ItemData),"GetBaseBlockPower",[typeof(int)]);var parry=AccessTools.Field(typeof(ItemDrop.ItemData.SharedData),"m_timedBlockBonus");
 var opmap=typeof(OpCodes).GetFields(BindingFlags.Static|BindingFlags.Public).Select(f=>(System.Reflection.Emit.OpCode)f.GetValue(null)!).ToDictionary(o=>o.Value);
-foreach(var path in new[]{Path.Combine(root,"management/BakaTrial/runtime/valheim_server_Data/Managed/assembly_valheim.dll"),args[1]})
+foreach(var path in new[]{Path.Combine(gameRoot,"valheim_server_Data/Managed/assembly_valheim.dll"),args[1]})
 {
  using var game=AssemblyDefinition.ReadAssembly(path,new ReaderParameters{AssemblyResolver=resolver});
  var item=game.MainModule.Types.Single(t=>t.Name=="ItemDrop").NestedTypes.Single(t=>t.Name=="ItemData");
