@@ -3,34 +3,35 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System.Security.Cryptography;
 using System.Text.Json;
+if(args.Length!=2)throw new ArgumentException("Usage: <workspace root> <client Managed folder>");
 int checks=0;void Check(bool ok,string reason){if(!ok)throw new Exception(reason);checks++;}
-string[] names={"chest_hildir1","chest_hildir2","chest_hildir3"};
+string[] names={"chest_hildir1","chest_hildir2","chest_hildir3","DvergrNeedle","BlackMetalScrap","BlackMetal"};
 foreach(bool original in new[]{false,true})
 {
  var db=new ObjectDB();
- foreach(string n in names.Concat(new[]{"Iron","CopperOre","Silver","chest_hildir4","chest_hildir1_extra","TreasureChest_forestcrypt_hildir"}))
+ foreach(string n in names.Concat(new[]{"Iron","CopperOre","Silver","chest_hildir4","chest_hildir1_extra","TreasureChest_forestcrypt_hildir","DvergrNeedle_extra","BlackMetalOre","BlackMetal_extra"}))
   db.Items[n]=new(){Drop=new(){m_itemData=new(){m_shared=new(){m_teleportable=original}}}};
  var old=db.Items.ToDictionary(x=>x.Key,x=>x.Value.Drop!.m_itemData!.m_shared!);
- Plugin.EnableChests(db);
- Check(db.Lookups.SequenceEqual(names),"exactly three direct prefab lookups");
+ Plugin.EnableItems(db);
+ Check(db.Lookups.SequenceEqual(names),"exactly six direct prefab lookups");
  foreach(var(n,data) in old)
  {
   Check(ReferenceEquals(data,db.Items[n].Drop!.m_itemData!.m_shared),"shared definition retained");
   Check(data.m_teleportable==(original||names.Contains(n)),"only quest chest portal flag changes: "+n);
   Check(data.m_weight==200&&data.m_toolTier==0&&data.m_name=="original","other item properties preserved");
  }
- Plugin.EnableChests(db);Check(old.Where(x=>names.Contains(x.Key)).All(x=>x.Value.m_teleportable),"idempotent initialization");
+ Plugin.EnableItems(db);Check(old.Where(x=>names.Contains(x.Key)).All(x=>x.Value.m_teleportable),"idempotent initialization");
 }
 foreach(int missing in new[]{0,1,2,3})
 {
  var db=new ObjectDB();
  if(missing<3)db.Items[names[missing]]=new(){Drop=missing==0?null:new(){m_itemData=missing==1?null:new(){m_shared=null}}};
- Plugin.EnableChests(db);Check(db.Lookups.SequenceEqual(names),"missing components and missing prefab tolerated");
+ Plugin.EnableItems(db);Check(db.Lookups.SequenceEqual(names),"missing components and missing prefab tolerated");
 }
 var root=Path.GetFullPath(args[0]);var dll=Path.Combine(root,"launcher/gameplay/HildirChestPortals/bin/Release/netstandard2.1/HildirChestPortals.dll");
 IEnumerable<TypeDefinition> Types(IEnumerable<TypeDefinition> ts){foreach(var t in ts){yield return t;foreach(var n in Types(t.NestedTypes))yield return n;}}
 int targets=0;
-foreach(string managed in new[]{"management/BakaTrial/runtime/valheim_server_Data/Managed","F:/SteamLibrary/steamapps/common/Valheim/valheim_Data/Managed"})
+foreach(string managed in new[]{Path.Combine(root,"management/BakaTrial/runtime/valheim_server_Data/Managed"),Path.GetFullPath(args[1])})
 {
  using var resolver=new DefaultAssemblyResolver();resolver.AddSearchDirectory(Path.Combine(root,managed));
  foreach(var path in new[]{"BepInEx/core","BepInEx/plugins/ValheimModding-Jotunn"})resolver.AddSearchDirectory(Path.Combine(root,"management/BakaTrial/runtime",path));
@@ -53,7 +54,7 @@ foreach(string managed in new[]{"management/BakaTrial/runtime/valheim_server_Dat
  foreach(var member in plugin.MainModule.GetMemberReferences())if(member.DeclaringType.Scope is AssemblyNameReference a&&scopes.Contains(a.Name))Check(member switch{MethodReference x=>x.Resolve()!=null,FieldReference x=>x.Resolve()!=null,_=>true},"pinned API resolves "+member.FullName);
  targets++;
 }
-using var assets=JsonDocument.Parse(File.ReadAllText(Path.Combine(root,"research/20261031-hildir-portals/items.json")));
-Check(assets.RootElement.GetArrayLength()==3,"three pinned assets");
+using var assets=JsonDocument.Parse(File.ReadAllText(Path.Combine(root,"research/20261101-portal-items/items.json")));
+Check(assets.RootElement.GetArrayLength()==6,"six pinned assets, including prior chest exceptions");
 foreach(var row in assets.RootElement.EnumerateArray())Check(names.Contains(row.GetProperty("prefab").GetString())&&row.GetProperty("teleportable").GetInt32()==0&&row.GetProperty("toolTier").GetInt32()==0,"native restriction is solely teleport flag");
 Console.WriteLine(JsonSerializer.Serialize(new{status="PASS",checks,pinnedAssemblies=targets,pluginSha256=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(dll))).ToLowerInvariant(),gameStarted=false,savesLoaded=false,liveGameplayTested=false}));

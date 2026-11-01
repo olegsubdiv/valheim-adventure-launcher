@@ -4,7 +4,7 @@ using Jotunn.Utils;
 
 namespace AdventureRpg.HildirChestPortals;
 
-[BepInPlugin(Guid, "Adventure RPG - Hildir Chest Portals", "1.0.0")]
+[BepInPlugin(Guid, "Adventure RPG - Selected Item Portals", "1.0.1")]
 [BepInDependency("com.jotunn.jotunn")]
 [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Patch)]
 public sealed class Plugin : BaseUnityPlugin
@@ -17,7 +17,7 @@ public sealed class Plugin : BaseUnityPlugin
         harmony = new Harmony(Guid);
         try { harmony.PatchAll(typeof(Plugin).Assembly); }
         catch { harmony.UnpatchSelf(); throw; }
-        Logger.LogInfo("The three Hildir quest chests can pass through portals.");
+        Logger.LogInfo("Hildir quest chests, the Dvergr extractor, black metal scrap and black metal can pass through portals.");
     }
 
     private void OnDestroy() => harmony?.UnpatchSelf();
@@ -28,12 +28,12 @@ public sealed class Plugin : BaseUnityPlugin
     private static class RegisterChests
     {
         [HarmonyPriority(Priority.Last)]
-        internal static void Postfix(ObjectDB __instance) => EnableChests(__instance);
+        internal static void Postfix(ObjectDB __instance) => EnableItems(__instance);
     }
 
-    internal static void EnableChests(ObjectDB database)
+    internal static void EnableItems(ObjectDB database)
     {
-        foreach (string name in ChestNames)
+        foreach (string name in ItemNames)
         {
             var prefab = database.GetItemPrefab(name);
             if (prefab == null) continue;
@@ -43,6 +43,6 @@ public sealed class Plugin : BaseUnityPlugin
         }
     }
 
-    private static readonly string[] ChestNames =
-        { "chest_hildir1", "chest_hildir2", "chest_hildir3" };
+    private static readonly string[] ItemNames =
+        { "chest_hildir1", "chest_hildir2", "chest_hildir3", "DvergrNeedle", "BlackMetalScrap", "BlackMetal" };
 }
