@@ -1,0 +1,7 @@
+{
+  "name": "FirecastLifecycle",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/olegsubdiv/valheim-adventure-launcher/tree/main/gameplay/FirecastLifecycle",
+  "description": "Fixes the reviewed Wizardry firecast attachment lifecycle while preserving native network lifetime and combat values.",
+  "dependencies": ["denikson-BepInExPack_Valheim-5.4.2360", "ValheimModding-Jotunn-2.30.2", "Therzie-Wizardry-1.2.3"]
+}
