@@ -71,7 +71,8 @@ public sealed class Plugin : BaseUnityPlugin
                 return prefabOwner.Base;
             return new FoodValues(canonical.m_shared);
         }
-        if (Owners.TryGetValue(item, out var owner) && ReferenceEquals(owner.Shared, item.m_shared)) return owner.Base;
+        if (Owners.TryGetValue(item, out var owner) && ReferenceEquals(owner.Shared, item.m_shared))
+            return owner.Applied ? owner.Base : new FoodValues(item.m_shared);
         return Bases.TryGetValue(item.m_shared, out var known) ? known : new FoodValues(item.m_shared);
     }
     private static void Remember(SharedData shared, FoodValues values) { Bases.Remove(shared); Bases.Add(shared, values); }
