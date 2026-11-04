@@ -6,8 +6,8 @@ using Jotunn.Utils;
 
 namespace AdventureRpg.ShardCategoryFreedom;
 
-[BepInPlugin(Guid, "Adventure RPG - Shard Category Freedom", "1.0.1")]
-[BepInDependency("randyknapp.mods.epicloot", "0.15.5")]
+[BepInPlugin(Guid, "Adventure RPG - Shard Category Freedom", "1.0.2")]
+[BepInDependency("randyknapp.mods.epicloot", "0.15.6")]
 [BepInDependency("com.jotunn.jotunn")]
 [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Patch)]
 public sealed class Plugin : BaseUnityPlugin
@@ -17,8 +17,8 @@ public sealed class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        if (Chainloader.PluginInfos["randyknapp.mods.epicloot"].Metadata.Version != new System.Version(0, 15, 5))
-            throw new NotSupportedException("Shard Category Freedom 1.0.1 requires reviewed EpicLoot 0.15.5.");
+        if (Chainloader.PluginInfos["randyknapp.mods.epicloot"].Metadata.Version != new System.Version(0, 15, 6))
+            throw new NotSupportedException("Shard Category Freedom 1.0.2 requires reviewed EpicLoot 0.15.6.");
         var field = typeof(Shards).GetField("ExclusiveCategories", BindingFlags.Static | BindingFlags.NonPublic)
             ?? throw new MissingFieldException("Pinned EpicLoot exclusive-category registry missing.");
         if (field.GetValue(null) is not HashSet<ShardCategory> categories)

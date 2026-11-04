@@ -1,0 +1,7 @@
+{
+  "name": "NorseDemigodsUICompat",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/olegsubdiv/valheim-adventure-launcher",
+  "description": "Client-only UI corrections for reviewed NorseDemigods1.9.0 and NorseDemigodsUI0.11.6; no gameplay changes.",
+  "dependencies": ["denikson-BepInExPack_Valheim-5.4.2360", "Alpus-NorseDemigods-1.9.0", "RDMods-NorseDemigodsUI-0.11.6"]
+}

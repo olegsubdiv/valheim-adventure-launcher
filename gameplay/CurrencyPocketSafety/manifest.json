@@ -1,0 +1,7 @@
+{
+  "name": "CurrencyPocketSafety",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/olegsubdiv/valheim-adventure-launcher",
+  "description": "Measured CurrencyPocket payment, immediate real-inventory withdrawal and coin-only EpicLoot integration.",
+  "dependencies": ["denikson-BepInExPack_Valheim-5.4.2360", "ValheimModding-Jotunn-2.30.2", "Azumatt-CurrencyPocket-1.0.15", "RandyKnapp-EpicLoot-0.15.6", "shudnal-ExtraSlots-1.2.23"]
+}

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../NorseDemigodsUICompat/Policy.cs" Link="ProductionPolicy.cs" />
+    <Compile Include="../NorseDemigodsUICompat/Descriptions.cs" Link="ProductionDescriptions.cs" />
+    <Reference Include="DemigodPanel"><HintPath>../../../updates/20261101-food-overflow/prepared/client/BepInEx/plugins/RDMods-NorseDemigodsUI/DemigodPanel.dll</HintPath></Reference>
+    <Reference Include="Mono.Cecil"><HintPath>../../../management/BakaTrial/runtime/BepInEx/core/Mono.Cecil.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

@@ -1,4 +1,4 @@
-# Guard Balance 1.0.1
+# Guard Balance 1.0.2
 
 Player block armor **x1.7** for all shields (including tower shields) and other
 equipment whose existing parry bonus is greater than 1. Parry bonus **x1.2**:
@@ -23,14 +23,19 @@ Ordinary and EpicLoot item tooltips display the adjusted block armor and parry
 bonus, including the skill-adjusted block value. Block force, attack damage and
 attack speed are unchanged. UI adjustments do not feed back into combat.
 
-Version 1.0.1 uses EpicLoot 0.15.5's numeric `TooltipGatherer` getters in place
+Version 1.0.2 uses EpicLoot 0.15.6's numeric `TooltipGatherer` getters in place
 of its removed `MagicTooltip` API. It scales the native block/parry result once
 before the new tooltip cache and renderer, preserving the new upstream modifiers
 and display behavior. The secondary skill value uses its existing native hook.
 
-Requires reviewed EpicLoot 0.15.5. Install on server and all clients (Jotunn exact
+Requires reviewed EpicLoot 0.15.6. Install on server and all clients (Jotunn exact
 patch compatibility). No new config, RPC, polling or full damage interception.
 Removing the plugin restores native calculations on restart without save edits.
+
+The 1.0.2 compatibility update retains the 1.0.1 combat and display behavior.
+The reviewed 0.15.6 tooltip getters and their consumers have the same IL as 0.15.5;
+the exact dependency gate now accepts 0.15.6. Offline checks also reject adjacent
+versions, preserving the guard against unreviewed upstream changes.
 
 Built and checked offline against pinned Valheim 1.0.20/EpicLoot APIs, executable
 policy fixtures and original client/server IL. Live combat/MP is not implied.

@@ -1,6 +1,6 @@
-# Shard Category Freedom 1.0.1
+# Shard Category Freedom 1.0.2
 
-Removes EpicLoot 0.15.5's one-per-category restriction for Boss and Unique
+Removes EpicLoot 0.15.6's one-per-category restriction for Boss and Unique
 shardstones. Multiple different Boss and Unique shardstones can be socketed in
 the same item or worn across equipped items, subject to the remaining native
 socket and effect requirements. Their Boss/Unique categories are retained.
@@ -11,6 +11,10 @@ read this same registry, so the obsolete category-limit hints disappear too.
 No Harmony patches, per-frame work, damage hooks, new RPC or configuration.
 The exact EpicLoot version is checked. On plugin destruction only the categories
 actually removed by this instance are restored.
+
+Version 1.0.2 targets reviewed EpicLoot 0.15.6. Its registry, native consumers and
+socket checks have the same reviewed IL as 0.15.5, so the previous behavior is
+retained without new hooks or a rewritten shard system.
 
 Socket counts, item eligibility, duplicate-effect restrictions, matching rolled
 effects, diminishing returns, shard effect values, drops, rarity, extraction and

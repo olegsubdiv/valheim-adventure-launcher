@@ -30,6 +30,13 @@ foreach(float flat in new[]{0f,25f})
 }
 Near(GuardPolicy.TooltipParryBonus(2.5f),3f,"buckler 2.5 to3.0");
 Near(1.7f*1.2f,2.04f,"combined parry multiplier2.04");
+var awake=typeof(Plugin).GetMethod("Awake",BindingFlags.Instance|BindingFlags.NonPublic)!;
+foreach(var version in new[]{new System.Version(0,15,5),new System.Version(0,15,6),new System.Version(0,15,7)})
+{
+ BepInEx.Bootstrap.Chainloader.PluginInfos["randyknapp.mods.epicloot"]=new(){Metadata=new(){Version=version}};
+ bool accepted=true;try{awake.Invoke(new Plugin(),null);}catch(TargetInvocationException e)when(e.InnerException is NotSupportedException){accepted=false;}
+ Check(accepted==(version==new System.Version(0,15,6)),"only reviewed EpicLoot0.15.6 accepted at production startup");
+}
 foreach(string nested in new[]{"SkillAdjustedTooltip","EnchantedBlockTooltip","EnchantedParryTooltip"})
 {
  var method=typeof(Plugin).GetNestedType(nested,BindingFlags.NonPublic)!.GetMethod("Postfix",BindingFlags.Static|BindingFlags.NonPublic)!;
@@ -37,9 +44,10 @@ foreach(string nested in new[]{"SkillAdjustedTooltip","EnchantedBlockTooltip","E
  Near((float)args2[1],nested=="EnchantedParryTooltip"?120f:170f,"UI postfix applies once after original modifiers");
 }
 var root=Path.GetFullPath(args[0]);var gameRoot=Path.GetFullPath(args[2]);using var resolver=new DefaultAssemblyResolver();
+if(args.Length>3)resolver.AddSearchDirectory(Path.GetDirectoryName(Path.GetFullPath(args[3]))!);
 foreach(var dir in new[]{"valheim_server_Data/Managed","BepInEx/core","BepInEx/plugins/ValheimModding-Jotunn","BepInEx/plugins/RandyKnapp-EpicLoot"})resolver.AddSearchDirectory(Path.Combine(gameRoot,dir));
-var epicPath=Directory.EnumerateFiles(Path.Combine(gameRoot,"BepInEx/plugins"),"EpicLoot.dll",SearchOption.AllDirectories).Single();resolver.AddSearchDirectory(Path.GetDirectoryName(epicPath)!);
-Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(epicPath))).ToLowerInvariant()=="c2b96d1cf7f8df21c7d5a9d238e799ebd4cbceb77972c9065cb58b15fdf59ce3","reviewed EpicLoot0.15.5 binary");
+var epicPath=args.Length>3?Path.GetFullPath(args[3]):Directory.EnumerateFiles(Path.Combine(gameRoot,"BepInEx/plugins"),"EpicLoot.dll",SearchOption.AllDirectories).Single();resolver.AddSearchDirectory(Path.GetDirectoryName(epicPath)!);
+Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(epicPath))).ToLowerInvariant()=="3bd349eea71565b43ef7b70d656926039efdacec1fd0aeee97d30787571bdd58","reviewed EpicLoot0.15.6 binary");
 using var epic=AssemblyDefinition.ReadAssembly(epicPath,new ReaderParameters{AssemblyResolver=resolver});
 Check(!epic.MainModule.Types.Any(t=>t.FullName=="EpicLoot.MagicTooltip"),"obsolete tooltip API absent in new EpicLoot");
 var gatherer=epic.MainModule.Types.Single(t=>t.FullName=="EpicLoot.TooltipGatherer");

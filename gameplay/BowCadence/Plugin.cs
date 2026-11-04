@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace AdventureRpg.BowCadence;
 
-[BepInPlugin(Guid, "Adventure RPG - Bow Cadence", "1.0.0")]
-[BepInDependency("NorseDemigods", "1.8.1")]
+[BepInPlugin(Guid, "Adventure RPG - Bow Cadence", "1.0.1")]
+[BepInDependency("NorseDemigods", "1.9.0")]
 [BepInDependency("com.jotunn.jotunn")]
 [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Patch)]
 public sealed class Plugin : BaseUnityPlugin
@@ -21,8 +21,8 @@ public sealed class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        if (Chainloader.PluginInfos["NorseDemigods"].Metadata.Version != new System.Version(1, 8, 1))
-            throw new NotSupportedException("Bow Cadence 1.0.0 requires reviewed NorseDemigods 1.8.1 and its AnimationSpeedManager.");
+        if (Chainloader.PluginInfos["NorseDemigods"].Metadata.Version != new System.Version(1, 9, 0))
+            throw new NotSupportedException("Bow Cadence 1.0.1 requires reviewed NorseDemigods 1.9.0 and its AnimationSpeedManager.");
         active = true;
         if (!registered)
         {

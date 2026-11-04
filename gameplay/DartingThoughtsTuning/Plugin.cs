@@ -8,8 +8,8 @@ using Jotunn.Utils;
 
 namespace AdventureRpg.DartingThoughtsTuning;
 
-[BepInPlugin(Guid, "Adventure RPG - Darting Thoughts Tuning", "1.0.1")]
-[BepInDependency("randyknapp.mods.epicloot", "0.15.5")]
+[BepInPlugin(Guid, "Adventure RPG - Darting Thoughts Tuning", "1.0.2")]
+[BepInDependency("randyknapp.mods.epicloot", "0.15.6")]
 [BepInDependency("com.jotunn.jotunn")]
 [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Patch)]
 public sealed class Plugin : BaseUnityPlugin
@@ -18,8 +18,8 @@ public sealed class Plugin : BaseUnityPlugin
     private Harmony? harmony;
     private void Awake()
     {
-        if (Chainloader.PluginInfos["randyknapp.mods.epicloot"].Metadata.Version != new System.Version(0, 15, 5))
-            throw new NotSupportedException("Darting Thoughts Tuning 1.0.1 requires reviewed EpicLoot 0.15.5.");
+        if (Chainloader.PluginInfos["randyknapp.mods.epicloot"].Metadata.Version != new System.Version(0, 15, 6))
+            throw new NotSupportedException("Darting Thoughts Tuning 1.0.2 requires reviewed EpicLoot 0.15.6.");
         harmony = new Harmony(Guid);
         try { harmony.PatchAll(typeof(Plugin).Assembly); RegisterDisplay(); }
         catch { harmony.UnpatchSelf(); throw; }
@@ -54,7 +54,7 @@ public sealed class Plugin : BaseUnityPlugin
         var code = instructions.Select(i => new CodeInstruction(i)).ToList();
         var literals = code.Where(i => i.opcode == OpCodes.Ldc_R4 && i.operand is float value && value == 0.5f).ToList();
         if (literals.Count != 1)
-            throw new NotSupportedException($"Expected one Darting Thoughts penalty ratio 0.5 in EpicLoot 0.15.5; found {literals.Count}.");
+            throw new NotSupportedException($"Expected one Darting Thoughts penalty ratio 0.5 in EpicLoot 0.15.6; found {literals.Count}.");
         literals[0].operand = PenaltyRatio;
         return code;
     }

@@ -1,0 +1,7 @@
+{
+  "name": "BowCadence",
+  "version_number": "1.0.1",
+  "website_url": "https://github.com/olegsubdiv/valheim-adventure-launcher/tree/main/gameplay/BowCadence",
+  "description": "Scale only local bow release animation from1x to1.5x with Bows skill; draw timing is unchanged. Reviewed for NorseDemigods1.9.0.",
+  "dependencies": ["denikson-BepInExPack_Valheim-5.4.2360", "Alpus-NorseDemigods-1.9.0", "ValheimModding-Jotunn-2.30.2"]
+}

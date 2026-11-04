@@ -13,16 +13,23 @@ foreach(float value in new[]{0f,1f,2f,3f,4f,5f,6f,7f,10f,15f,20f,25f,40f,50f,60f
 }
 Near((float)Plugin.DisplayValues(100)[1],40,"minus50 becomesminus40");
 Near((float)Plugin.DisplayValues(50)[1],20,"minus25 becomesminus20");
+var awake=typeof(Plugin).GetMethod("Awake",BindingFlags.Instance|BindingFlags.NonPublic)!;
+foreach(var version in new[]{new System.Version(0,15,5),new System.Version(0,15,6),new System.Version(0,15,7)})
+{
+ BepInEx.Bootstrap.Chainloader.PluginInfos["randyknapp.mods.epicloot"]=new(){Metadata=new(){Version=version}};
+ bool accepted=true;try{awake.Invoke(new Plugin(),null);}catch(TargetInvocationException e)when(e.InnerException is NotSupportedException){accepted=false;}
+ Check(accepted==(version==new System.Version(0,15,6)),"only reviewed EpicLoot0.15.6 accepted at production startup");
+}
 var unrelated=new Func<float,object[]>(v=>["unrelated",v]);EpicLoot.MagicItem.Providers["Other"]=unrelated;
 EpicLoot.Magic.MagicItemEffects.DartingThoughts.RegisterDisplayValues();
 Plugin.RegisterDisplay();Near((float)EpicLoot.MagicItem.Providers["DartingThoughts"](100)[1],40,"existing registration replaced on plugin load");
 EpicLoot.Magic.MagicItemEffects.DartingThoughts.RegisterDisplayValues();
 var post=typeof(Plugin).GetNestedType("DisplayRegistration",BindingFlags.NonPublic)!.GetMethod("Postfix",BindingFlags.Static|BindingFlags.NonPublic)!;post.Invoke(null,null);
 Near((float)EpicLoot.MagicItem.Providers["DartingThoughts"](100)[1],40,"provider restored after upstream registration");Check(ReferenceEquals(unrelated,EpicLoot.MagicItem.Providers["Other"]),"unrelated effect provider unchanged");
-var root=Path.GetFullPath(args[0]);var gameRoot=Path.GetFullPath(args[1]);var epicPath=Directory.EnumerateFiles(Path.Combine(gameRoot,"BepInEx/plugins"),"EpicLoot.dll",SearchOption.AllDirectories).Single();
+var root=Path.GetFullPath(args[0]);var gameRoot=Path.GetFullPath(args[1]);var epicPath=args.Length>2?Path.GetFullPath(args[2]):Directory.EnumerateFiles(Path.Combine(gameRoot,"BepInEx/plugins"),"EpicLoot.dll",SearchOption.AllDirectories).Single();
 using var resolver=new DefaultAssemblyResolver();foreach(var p in new[]{Path.GetDirectoryName(epicPath)!,Path.Combine(gameRoot,"BepInEx/core"),Path.Combine(gameRoot,"valheim_server_Data/Managed"),Path.Combine(gameRoot,"BepInEx/plugins/ValheimModding-Jotunn")})resolver.AddSearchDirectory(p);
 using var epic=AssemblyDefinition.ReadAssembly(epicPath,new ReaderParameters{AssemblyResolver=resolver});
-Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(epicPath))).ToLowerInvariant()=="c2b96d1cf7f8df21c7d5a9d238e799ebd4cbceb77972c9065cb58b15fdf59ce3","exact reviewed EpicLoot0.15.5 binary");
+Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(epicPath))).ToLowerInvariant()=="3bd349eea71565b43ef7b70d656926039efdacec1fd0aeee97d30787571bdd58","exact reviewed EpicLoot0.15.6 binary");
 var dtype=epic.MainModule.Types.Single(t=>t.FullName=="EpicLoot.Magic.MagicItemEffects.DartingThoughts");var method=dtype.NestedTypes.Single(t=>t.Name=="ModifyMaxEitr").Methods.Single(m=>m.Name=="Postfix");
 var opmap=typeof(OpCodes).GetFields(BindingFlags.Static|BindingFlags.Public).Select(f=>(OpCode)f.GetValue(null)!).ToDictionary(o=>o.Value);
 var input=method.Body.Instructions.Select(i=>new CodeInstruction(opmap[i.OpCode.Value],i.Operand)).ToList();

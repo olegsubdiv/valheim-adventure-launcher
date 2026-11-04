@@ -1,5 +1,5 @@
 {
-  "epicLootVersion": "0.15.5",
+  "epicLootVersion": "0.15.6",
   "operation": "Append native-effective Loot-only level5/6 anchors",
   "tables": [
     "Tier4Mob",

@@ -1,19 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><LangVersion>latest</LangVersion>
-    <AssemblyName>BowCadence</AssemblyName><Version>1.0.0</Version>
+    <AssemblyName>BowCadence</AssemblyName><Version>1.0.1</Version>
     <DebugType>none</DebugType><DebugSymbols>false</DebugSymbols>
     <GameRoot Condition="'$(GameRoot)' == ''">../../../management/BakaTrial/runtime</GameRoot>
+    <ManagedRoot Condition="'$(ManagedRoot)' == ''">$(GameRoot)/valheim_server_Data/Managed</ManagedRoot>
+    <AnimationManagerPath Condition="'$(AnimationManagerPath)' == ''">$(GameRoot)/BepInEx/plugins/Alpus-NorseDemigods/AnimationSpeedManager.dll</AnimationManagerPath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Tests/**" />
-    <Reference Include="assembly_valheim"><HintPath>$(GameRoot)/valheim_server_Data/Managed/assembly_valheim.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="UnityEngine"><HintPath>$(GameRoot)/valheim_server_Data/Managed/UnityEngine.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameRoot)/valheim_server_Data/Managed/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="UnityEngine.AnimationModule"><HintPath>$(GameRoot)/valheim_server_Data/Managed/UnityEngine.AnimationModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="assembly_valheim"><HintPath>$(ManagedRoot)/assembly_valheim.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(ManagedRoot)/UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(ManagedRoot)/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AnimationModule"><HintPath>$(ManagedRoot)/UnityEngine.AnimationModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BepInEx"><HintPath>$(GameRoot)/BepInEx/core/BepInEx.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(GameRoot)/BepInEx/core/0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Jotunn"><HintPath>$(GameRoot)/BepInEx/plugins/ValheimModding-Jotunn/Jotunn.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="AnimationSpeedManager"><HintPath>$(GameRoot)/BepInEx/plugins/Alpus-NorseDemigods/AnimationSpeedManager.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="AnimationSpeedManager"><HintPath>$(AnimationManagerPath)</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 </Project>

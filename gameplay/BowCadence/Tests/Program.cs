@@ -15,7 +15,8 @@ Check(Math.Abs(2d * CadencePolicy.Factor(true,true,true,true,100f) - 3d) < 1e-9,
 
 var root = Path.GetFullPath(args[0]);
 using var game = AssemblyDefinition.ReadAssembly(Path.Combine(root,"management/BakaTrial/runtime/valheim_server_Data/Managed/assembly_valheim.dll"));
-using var asm = AssemblyDefinition.ReadAssembly(Path.Combine(root,"management/BakaTrial/runtime/BepInEx/plugins/Alpus-NorseDemigods/AnimationSpeedManager.dll"));
+var managerPath = args.Length > 1 ? Path.GetFullPath(args[1]) : Path.Combine(root,"management/BakaTrial/runtime/BepInEx/plugins/Alpus-NorseDemigods/AnimationSpeedManager.dll");
+using var asm = AssemblyDefinition.ReadAssembly(managerPath);
 using var own = AssemblyDefinition.ReadAssembly(Path.Combine(root,"launcher/gameplay/BowCadence/bin/Release/netstandard2.1/BowCadence.dll"));
 TypeDefinition Type(AssemblyDefinition a,string n) => a.MainModule.Types.Single(t=>t.Name==n);
 IEnumerable<MethodReference> Calls(MethodDefinition m) => m.Body.Instructions.Select(i=>i.Operand).OfType<MethodReference>();
@@ -31,6 +32,8 @@ Check(character.Methods.Any(m=>m.Name=="GetSkillLevel" && m.IsPublic && m.Parame
 Check(Type(game,"Humanoid").Methods.Any(m=>m.Name=="GetCurrentWeapon" && m.IsPublic && m.Parameters.Count==0),"equipped weapon API exists");
 Check(Type(game,"Player").Fields.Any(f=>f.Name=="m_localPlayer" && f.IsPublic && f.IsStatic),"local player guard API exists");
 var plugin=Type(own,"Plugin");
+Check(own.Name.Version==new System.Version(1,0,1,0),"adapter migration assembly version1.0.1");
+Check(plugin.CustomAttributes.Any(a=>a.AttributeType.Name=="BepInDependency" && a.ConstructorArguments.Count==2 && Equals(a.ConstructorArguments[0].Value,"NorseDemigods") && Equals(a.ConstructorArguments[1].Value,"1.9.0")),"reviewed NorseDemigods1.9.0 dependency");
 var adjust=plugin.Methods.Single(m=>m.Name=="AdjustSpeed");
 var calls=Calls(adjust).ToArray();
 Check(calls.Any(m=>m.Name=="GetCurrentAnimatorStateInfo"),"only real animator state inspected");

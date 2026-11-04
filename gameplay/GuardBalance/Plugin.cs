@@ -7,8 +7,8 @@ using Jotunn.Utils;
 
 namespace AdventureRpg.GuardBalance;
 
-[BepInPlugin(Guid, "Adventure RPG - Guard Balance", "1.0.1")]
-[BepInDependency("randyknapp.mods.epicloot", "0.15.5")]
+[BepInPlugin(Guid, "Adventure RPG - Guard Balance", "1.0.2")]
+[BepInDependency("randyknapp.mods.epicloot", "0.15.6")]
 [BepInDependency("com.jotunn.jotunn")]
 [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Patch)]
 public sealed class Plugin : BaseUnityPlugin
@@ -17,8 +17,8 @@ public sealed class Plugin : BaseUnityPlugin
     private Harmony? harmony;
     private void Awake()
     {
-        if (Chainloader.PluginInfos["randyknapp.mods.epicloot"].Metadata.Version != new System.Version(0, 15, 5))
-            throw new NotSupportedException("Guard Balance 1.0.1 requires reviewed EpicLoot 0.15.5.");
+        if (Chainloader.PluginInfos["randyknapp.mods.epicloot"].Metadata.Version != new System.Version(0, 15, 6))
+            throw new NotSupportedException("Guard Balance 1.0.2 requires reviewed EpicLoot 0.15.6.");
         harmony = new Harmony(Guid);
         try { harmony.PatchAll(typeof(Plugin).Assembly); }
         catch { harmony.UnpatchSelf(); throw; }
@@ -52,7 +52,7 @@ public sealed class Plugin : BaseUnityPlugin
             ?? throw new MissingMemberException("Pinned EpicLoot tooltip gatherer missing."), method)
         ?? throw new MissingMethodException("Pinned EpicLoot numeric tooltip getter missing.");
 
-    // EpicLoot 0.15.5 gathers numeric stats before caching/rendering them. Wrapping
+    // EpicLoot 0.15.6 gathers numeric stats before caching/rendering them. Wrapping
     // these two getters preserves its modifiers, formatting and cache behavior.
     // The skill-adjusted secondary value retains its separate native hook above.
     [HarmonyPatch]

@@ -18,15 +18,16 @@ for(int mask=0;mask<16;mask++)
  change.Restore();Check(set.SetEquals(original),"restore is idempotent");
 }
 var plugin=new Plugin();var awake=typeof(Plugin).GetMethod("Awake",BindingFlags.Instance|BindingFlags.NonPublic)!;var destroy=typeof(Plugin).GetMethod("OnDestroy",BindingFlags.Instance|BindingFlags.NonPublic)!;
-Chainloader.PluginInfos["randyknapp.mods.epicloot"]=new(){Metadata=new(){Version=new System.Version(0,15,5)}};
+Chainloader.PluginInfos["randyknapp.mods.epicloot"]=new(){Metadata=new(){Version=new System.Version(0,15,6)}};
 awake.Invoke(plugin,null);Check(Shards.ExclusiveCategories.Count==0,"production startup edits shared registry");destroy.Invoke(plugin,null);Check(Shards.ExclusiveCategories.SetEquals(new[]{ShardCategory.Boss,ShardCategory.Unique}),"production destruction restores registry");
-Chainloader.PluginInfos["randyknapp.mods.epicloot"].Metadata.Version=new System.Version(0,15,6);
+Chainloader.PluginInfos["randyknapp.mods.epicloot"].Metadata.Version=new System.Version(0,15,7);
 try{awake.Invoke(new Plugin(),null);throw new Exception("wrong version accepted");}catch(TargetInvocationException e)when(e.InnerException is NotSupportedException){Check(Shards.ExclusiveCategories.Count==2,"wrong version fails without edits");}
 var root=Path.GetFullPath(args[0]);var gameRoot=Path.GetFullPath(args[1]);string dll=Path.Combine(root,"launcher/gameplay/ShardCategoryFreedom/bin/Release/netstandard2.1/ShardCategoryFreedom.dll");
-using var resolver=new DefaultAssemblyResolver();foreach(string path in new[]{"BepInEx/core","BepInEx/plugins/RandyKnapp-EpicLoot","BepInEx/plugins/ValheimModding-Jotunn","valheim_server_Data/Managed"})resolver.AddSearchDirectory(Path.Combine(gameRoot,path));
-string epic=Path.Combine(gameRoot,"BepInEx/plugins/RandyKnapp-EpicLoot/EpicLoot.dll");
+using var resolver=new DefaultAssemblyResolver();
+if(args.Length>2)resolver.AddSearchDirectory(Path.GetDirectoryName(Path.GetFullPath(args[2]))!);foreach(string path in new[]{"BepInEx/core","BepInEx/plugins/RandyKnapp-EpicLoot","BepInEx/plugins/ValheimModding-Jotunn","valheim_server_Data/Managed"})resolver.AddSearchDirectory(Path.Combine(gameRoot,path));
+string epic=args.Length>2?Path.GetFullPath(args[2]):Path.Combine(gameRoot,"BepInEx/plugins/RandyKnapp-EpicLoot/EpicLoot.dll");
 string Hash(string path)=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant();
-Check(Hash(epic)=="c2b96d1cf7f8df21c7d5a9d238e799ebd4cbceb77972c9065cb58b15fdf59ce3","exact reviewed EpicLoot0.15.5 binary");
+Check(Hash(epic)=="3bd349eea71565b43ef7b70d656926039efdacec1fd0aeee97d30787571bdd58","exact reviewed EpicLoot0.15.6 binary");
 using var el=AssemblyDefinition.ReadAssembly(epic,new(){AssemblyResolver=resolver});
 IEnumerable<TypeDefinition> Types(IEnumerable<TypeDefinition> ts){foreach(var t in ts){yield return t;foreach(var n in Types(t.NestedTypes))yield return n;}}
 var types=Types(el.MainModule.Types).ToArray();var shards=types.Single(t=>t.FullName=="EpicLoot.ShardStones.Shards");var field=shards.Fields.Single(f=>f.Name=="ExclusiveCategories");
